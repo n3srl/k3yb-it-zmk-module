@@ -1,6 +1,17 @@
 if SHIELD_K3YB_IT
 
 config ZMK_KEYBOARD_NAME
-    default "k3yb.it! by N3"
+    default "k3yb.it"
 
-endif
+# OLED display support: select SSD1306 driver when display is enabled
+if ZMK_DISPLAY
+
+config SSD1306
+    default y
+
+config I2C
+    default y
+
+endif # ZMK_DISPLAY
+
+endif # SHIELD_K3YB_IT

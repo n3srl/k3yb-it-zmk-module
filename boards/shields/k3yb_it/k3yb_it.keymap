@@ -1,60 +1,422 @@
+/* k3yb_it.keymap
+ *
+ * Layers:
+ *   0  default_layer   — US ASCII base
+ *   1  keypad_layer    — numpad keys (phisical numpad section, cols 16-19)
+ *   2  ital_grave      — Italian vowels grave accent (à è ì ò ù / À È Ì Ò Ù)
+ *   3  ital_acute      — Italian vowels acute accent (á é í ó ú / Á É Í Ó Ú)
+ *
+ * Italian layer activation:
+ *   Hold NON_US_HASH key (row 6, main section) → layer 2 (grave)
+ *   Hold K_APP key       (row 7, main section) → layer 3 (acute)
+ *   Tap those same keys  → normal character (# and Context Menu)
+ *
+ * Italian accent macros — Windows Alt+numpad Unicode input:
+ *   Requirements: NumLock ON, OS keyboard layout = US (not IT).
+ *   For Linux:  replace macro bindings with Ctrl+Shift+U sequences.
+ *   For macOS:  replace with Option+` (grave) or Option+e (acute) sequences.
+ *
+ * Total binding count per layer: 105
+ *   88 main keyboard keys (from demux_transform rows 0-6, cols 0-15)
+ *   17 numpad keys        (from demux_transform, cols 16-19)
+ */
+
 #include <behaviors.dtsi>
 #include <dt-bindings/zmk/keys.h>
 #include <dt-bindings/zmk/bt.h>
 
+/* Helper: 17 numpad &trans entries for layers that don't use the numpad */
+#define NP_TRANS \
+    &trans &trans &trans &trans \
+    &trans &trans &trans &trans \
+    &trans &trans &trans \
+    &trans &trans &trans \
+    &trans        &trans &trans
+
 / {
+
+    /* ==================================================================
+     *  MACROS — Windows Alt+numpad Unicode input
+     *  Pattern: release Shift → hold LAlt → tap 4 KP digits → release LAlt
+     * ================================================================== */
+    macros {
+
+        /* grave lowercase */
+        m_a_gr: m_a_gr {
+            compatible = "zmk,behavior-macro"; #binding-cells = <0>;
+            bindings = <&macro_release &kp LSHFT &kp RSHFT>
+                     , <&macro_press &kp LALT>
+                     , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N2 &kp KP_N4>  /* 0224 = à */
+                     , <&macro_release &kp LALT>;
+        };
+        m_e_gr: m_e_gr {
+            compatible = "zmk,behavior-macro"; #binding-cells = <0>;
+            bindings = <&macro_release &kp LSHFT &kp RSHFT>
+                     , <&macro_press &kp LALT>
+                     , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N3 &kp KP_N2>  /* 0232 = è */
+                     , <&macro_release &kp LALT>;
+        };
+        m_i_gr: m_i_gr {
+            compatible = "zmk,behavior-macro"; #binding-cells = <0>;
+            bindings = <&macro_release &kp LSHFT &kp RSHFT>
+                     , <&macro_press &kp LALT>
+                     , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N3 &kp KP_N6>  /* 0236 = ì */
+                     , <&macro_release &kp LALT>;
+        };
+        m_o_gr: m_o_gr {
+            compatible = "zmk,behavior-macro"; #binding-cells = <0>;
+            bindings = <&macro_release &kp LSHFT &kp RSHFT>
+                     , <&macro_press &kp LALT>
+                     , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N4 &kp KP_N2>  /* 0242 = ò */
+                     , <&macro_release &kp LALT>;
+        };
+        m_u_gr: m_u_gr {
+            compatible = "zmk,behavior-macro"; #binding-cells = <0>;
+            bindings = <&macro_release &kp LSHFT &kp RSHFT>
+                     , <&macro_press &kp LALT>
+                     , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N4 &kp KP_N9>  /* 0249 = ù */
+                     , <&macro_release &kp LALT>;
+        };
+
+        /* grave uppercase */
+        m_A_gr: m_A_gr {
+            compatible = "zmk,behavior-macro"; #binding-cells = <0>;
+            bindings = <&macro_release &kp LSHFT &kp RSHFT>
+                     , <&macro_press &kp LALT>
+                     , <&macro_tap &kp KP_N0 &kp KP_N1 &kp KP_N9 &kp KP_N2>  /* 0192 = À */
+                     , <&macro_release &kp LALT>;
+        };
+        m_E_gr: m_E_gr {
+            compatible = "zmk,behavior-macro"; #binding-cells = <0>;
+            bindings = <&macro_release &kp LSHFT &kp RSHFT>
+                     , <&macro_press &kp LALT>
+                     , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N0 &kp KP_N0>  /* 0200 = È */
+                     , <&macro_release &kp LALT>;
+        };
+        m_I_gr: m_I_gr {
+            compatible = "zmk,behavior-macro"; #binding-cells = <0>;
+            bindings = <&macro_release &kp LSHFT &kp RSHFT>
+                     , <&macro_press &kp LALT>
+                     , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N0 &kp KP_N4>  /* 0204 = Ì */
+                     , <&macro_release &kp LALT>;
+        };
+        m_O_gr: m_O_gr {
+            compatible = "zmk,behavior-macro"; #binding-cells = <0>;
+            bindings = <&macro_release &kp LSHFT &kp RSHFT>
+                     , <&macro_press &kp LALT>
+                     , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N1 &kp KP_N0>  /* 0210 = Ò */
+                     , <&macro_release &kp LALT>;
+        };
+        m_U_gr: m_U_gr {
+            compatible = "zmk,behavior-macro"; #binding-cells = <0>;
+            bindings = <&macro_release &kp LSHFT &kp RSHFT>
+                     , <&macro_press &kp LALT>
+                     , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N1 &kp KP_N7>  /* 0217 = Ù */
+                     , <&macro_release &kp LALT>;
+        };
+
+        /* acute lowercase */
+        m_a_ac: m_a_ac {
+            compatible = "zmk,behavior-macro"; #binding-cells = <0>;
+            bindings = <&macro_release &kp LSHFT &kp RSHFT>
+                     , <&macro_press &kp LALT>
+                     , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N2 &kp KP_N5>  /* 0225 = á */
+                     , <&macro_release &kp LALT>;
+        };
+        m_e_ac: m_e_ac {
+            compatible = "zmk,behavior-macro"; #binding-cells = <0>;
+            bindings = <&macro_release &kp LSHFT &kp RSHFT>
+                     , <&macro_press &kp LALT>
+                     , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N3 &kp KP_N3>  /* 0233 = é */
+                     , <&macro_release &kp LALT>;
+        };
+        m_i_ac: m_i_ac {
+            compatible = "zmk,behavior-macro"; #binding-cells = <0>;
+            bindings = <&macro_release &kp LSHFT &kp RSHFT>
+                     , <&macro_press &kp LALT>
+                     , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N3 &kp KP_N7>  /* 0237 = í */
+                     , <&macro_release &kp LALT>;
+        };
+        m_o_ac: m_o_ac {
+            compatible = "zmk,behavior-macro"; #binding-cells = <0>;
+            bindings = <&macro_release &kp LSHFT &kp RSHFT>
+                     , <&macro_press &kp LALT>
+                     , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N4 &kp KP_N3>  /* 0243 = ó */
+                     , <&macro_release &kp LALT>;
+        };
+        m_u_ac: m_u_ac {
+            compatible = "zmk,behavior-macro"; #binding-cells = <0>;
+            bindings = <&macro_release &kp LSHFT &kp RSHFT>
+                     , <&macro_press &kp LALT>
+                     , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N5 &kp KP_N0>  /* 0250 = ú */
+                     , <&macro_release &kp LALT>;
+        };
+
+        /* acute uppercase */
+        m_A_ac: m_A_ac {
+            compatible = "zmk,behavior-macro"; #binding-cells = <0>;
+            bindings = <&macro_release &kp LSHFT &kp RSHFT>
+                     , <&macro_press &kp LALT>
+                     , <&macro_tap &kp KP_N0 &kp KP_N1 &kp KP_N9 &kp KP_N3>  /* 0193 = Á */
+                     , <&macro_release &kp LALT>;
+        };
+        m_E_ac: m_E_ac {
+            compatible = "zmk,behavior-macro"; #binding-cells = <0>;
+            bindings = <&macro_release &kp LSHFT &kp RSHFT>
+                     , <&macro_press &kp LALT>
+                     , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N0 &kp KP_N1>  /* 0201 = É */
+                     , <&macro_release &kp LALT>;
+        };
+        m_I_ac: m_I_ac {
+            compatible = "zmk,behavior-macro"; #binding-cells = <0>;
+            bindings = <&macro_release &kp LSHFT &kp RSHFT>
+                     , <&macro_press &kp LALT>
+                     , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N0 &kp KP_N5>  /* 0205 = Í */
+                     , <&macro_release &kp LALT>;
+        };
+        m_O_ac: m_O_ac {
+            compatible = "zmk,behavior-macro"; #binding-cells = <0>;
+            bindings = <&macro_release &kp LSHFT &kp RSHFT>
+                     , <&macro_press &kp LALT>
+                     , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N1 &kp KP_N1>  /* 0211 = Ó */
+                     , <&macro_release &kp LALT>;
+        };
+        m_U_ac: m_U_ac {
+            compatible = "zmk,behavior-macro"; #binding-cells = <0>;
+            bindings = <&macro_release &kp LSHFT &kp RSHFT>
+                     , <&macro_press &kp LALT>
+                     , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N1 &kp KP_N8>  /* 0218 = Ú */
+                     , <&macro_release &kp LALT>;
+        };
+    };
+
+    /* ==================================================================
+     *  BEHAVIORS — mod-morph: plain = lowercase, Shift = uppercase
+     * ================================================================== */
+    behaviors {
+        mm_a_gr: mm_a_gr {
+            compatible = "zmk,behavior-mod-morph"; #binding-cells = <0>;
+            bindings = <&m_a_gr>, <&m_A_gr>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+        mm_e_gr: mm_e_gr {
+            compatible = "zmk,behavior-mod-morph"; #binding-cells = <0>;
+            bindings = <&m_e_gr>, <&m_E_gr>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+        mm_i_gr: mm_i_gr {
+            compatible = "zmk,behavior-mod-morph"; #binding-cells = <0>;
+            bindings = <&m_i_gr>, <&m_I_gr>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+        mm_o_gr: mm_o_gr {
+            compatible = "zmk,behavior-mod-morph"; #binding-cells = <0>;
+            bindings = <&m_o_gr>, <&m_O_gr>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+        mm_u_gr: mm_u_gr {
+            compatible = "zmk,behavior-mod-morph"; #binding-cells = <0>;
+            bindings = <&m_u_gr>, <&m_U_gr>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+        mm_a_ac: mm_a_ac {
+            compatible = "zmk,behavior-mod-morph"; #binding-cells = <0>;
+            bindings = <&m_a_ac>, <&m_A_ac>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+        mm_e_ac: mm_e_ac {
+            compatible = "zmk,behavior-mod-morph"; #binding-cells = <0>;
+            bindings = <&m_e_ac>, <&m_E_ac>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+        mm_i_ac: mm_i_ac {
+            compatible = "zmk,behavior-mod-morph"; #binding-cells = <0>;
+            bindings = <&m_i_ac>, <&m_I_ac>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+        mm_o_ac: mm_o_ac {
+            compatible = "zmk,behavior-mod-morph"; #binding-cells = <0>;
+            bindings = <&m_o_ac>, <&m_O_ac>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+        mm_u_ac: mm_u_ac {
+            compatible = "zmk,behavior-mod-morph"; #binding-cells = <0>;
+            bindings = <&m_u_ac>, <&m_U_ac>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+    };
+
+    /* ==================================================================
+     *  KEYMAP  (105 bindings per layer: 88 main + 17 numpad)
+     * ================================================================== */
     keymap {
         compatible = "zmk,keymap";
-		
-		default_layer {
-			//      1   2   3   4   5   6   7   8   9   10  11  12  13  14  15  16
-            //    ┌───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┐
-            //  1 │ESC│ F1│ F2│ F3│ F4│ F5│ F6│ F7│ F8│ F9│F10│F11│F12│PRN│BSC│ PS│
-            //    ├───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┤
-            //  2 │ ` │ 1 │ 2 │ 3 │ 4 │ 5 │ 6 │ 7 │ 8 │ 9 │ 0 │ - │ = │BKS│   │   │
-            //    ├───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┤
-            //  3 │TAB│ q │ w │ e │ r │ t │ y │ u │ i │ o │ p │ [ │ ] │INS│ UP│PGU│
-            //    ├───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┤
-            //  4 │CAP│ a │ s │ d │ f │ g │ h │ j │ k │ l │ ; │ ' │ENT│DEL│END│PGD│
-            //    ├───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┤
-            //  5 │SHL│ \ │ z │ x │ c │ v │ b │ n │ m │ , │ . │ / │SHR│   │   │ UP│
-            //    ├───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┤
-            //  6 │LCT│WIN│LAT│ SP│   │   │   │   │   │   │RIG│   │ # │   │   │   │
-            //    ├───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┤
-            //  7 │   │   │   │   │   │   │   │   │RAL│ FN│MNU│RCT│   │LEF│DOW│   │
-            //    └───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┘
-			bindings = <
-			&kp ESC          &kp F1        &kp F2       &kp F3    &kp F4 &kp F5 &kp F6 &kp F7        &kp F8        &kp F9             &kp F10             &kp F11          &kp F12           &kp PRINTSCREEN &kp SCROLLLOCK &kp PAUSE_BREAK
-			&kp GRAVE        &kp N1        &kp N2       &kp N3    &kp N4 &kp N5 &kp N6 &kp N7        &kp N8        &kp N9             &kp N0              &kp MINUS        &kp EQUAL         &kp BACKSPACE 
-			&kp TAB          &kp Q         &kp W        &kp E     &kp R  &kp T  &kp Y  &kp U         &kp I         &kp O              &kp P               &kp LEFT_BRACKET &kp RIGHT_BRACKET &kp INSERT      &kp HOME       &kp PAGE_UP
-			&kp CAPSLOCK     &kp A         &kp S        &kp D     &kp F  &kp G  &kp H  &kp J         &kp K         &kp L              &kp SEMICOLON       &kp SINGLE_QUOTE &kp ENTER         &kp DELETE      &kp END        &kp PAGE_DOWN
-			&kp LEFT_SHIFT   &kp BACKSLASH &kp Z        &kp X     &kp C  &kp V  &kp B  &kp N         &kp M         &kp COMMA          &kp DOT             &kp SLASH        &kp RIGHT_SHIFT                                  &kp UP_ARROW
-			&kp LEFT_CONTROL &kp LEFT_WIN  &kp LEFT_ALT &kp SPACE                                                                     &kp RIGHT_ARROW                      &kp NON_US_HASH
-			                                                                                         &kp RIGHT_ALT &kp RIGHT_GUI      &kp K_CONTEXT_MENU &kp RIGHT_CONTROL                   &kp LEFT_ARROW  &kp DOWN_ARROW
-			>;
-		};
-		
-        keypad_layer {
+
+        /* ----------------------------------------------------------
+         *  Layer 0 — default_layer (US ASCII)
+         *
+         *  Key layout (main section):
+         *      1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16
+         *    ┌───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┐
+         *  1 │ESC│ F1│ F2│ F3│ F4│ F5│ F6│ F7│ F8│ F9│F10│F11│F12│PRN│SCR│PSE│
+         *    ├───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┤
+         *  2 │ ` │ 1 │ 2 │ 3 │ 4 │ 5 │ 6 │ 7 │ 8 │ 9 │ 0 │ - │ = │BKS│   │   │
+         *    ├───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┤
+         *  3 │TAB│ Q │ W │ E │ R │ T │ Y │ U │ I │ O │ P │ [ │ ] │INS│HOM│PGU│
+         *    ├───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┤
+         *  4 │CAP│ A │ S │ D │ F │ G │ H │ J │ K │ L │ ; │ ' │ENT│DEL│END│PGD│
+         *    ├───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┤
+         *  5 │SHL│ \ │ Z │ X │ C │ V │ B │ N │ M │ , │ . │ / │SHR│   │   │ ↑ │
+         *    ├───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┤
+         *  6 │LCT│WIN│LAT│ SP│   │   │   │   │   │   │ → │   │IT`│   │   │   │
+         *    ├───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┤
+         *  7 │   │   │   │   │   │   │   │   │RAL│   │IT'│RCT│   │ ← │ ↓ │   │
+         *    └───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┘
+         *
+         *  IT` = tap: # (NON_US_HASH)  / hold: Italian grave layer (2)
+         *  IT' = tap: Context Menu     / hold: Italian acute layer (3)
+         * ---------------------------------------------------------- */
+        default_layer {
             bindings = <
-                //     1   2   3   4
-                //   ┌───┬───┬───┬───┐
-                // 1 │NUM│ / │ * │ - │
-                //   ├───┼───┼───┼───┤
-                // 2 │ 7 │ 8 │ 9 │ + │
-                //   ├───┼───┼───┼───┤
-                // 3 │ 4 │ 5 │ 6 │   │
-                //   ├───┼───┼───┼───┤
-                // 4 │ 1 │ 2 │ 3 │   │
-                //   ├───┼───┼───┼───┤
-                // 5 │ 0 │   │ . │RET│
-                //   └───┴───┴───┴───┘
-                &kp KP_NUMLOCK  &kp KP_DIVIDE   &kp KP_ASTERISK  &kp KP_SUBTRACT
-                &kp KP_N7       &kp KP_N8       &kp KP_N9        &kp KP_PLUS
-                &kp KP_N4       &kp KP_N5       &kp KP_N6
-                &kp KP_N1       &kp KP_N2       &kp KP_N3
-                &kp KP_N0                       &kp KP_DOT       &kp KP_ENTER 
+            /* row 0 */
+            &kp ESC          &kp F1        &kp F2       &kp F3    &kp F4 &kp F5 &kp F6 &kp F7
+            &kp F8           &kp F9        &kp F10      &kp F11   &kp F12 &kp PRINTSCREEN &kp SCROLLLOCK &kp PAUSE_BREAK
+            /* row 1 */
+            &kp GRAVE        &kp N1        &kp N2       &kp N3    &kp N4 &kp N5 &kp N6 &kp N7
+            &kp N8           &kp N9        &kp N0       &kp MINUS &kp EQUAL &kp BACKSPACE
+            /* row 2 */
+            &kp TAB          &kp Q         &kp W        &kp E     &kp R  &kp T  &kp Y  &kp U
+            &kp I            &kp O         &kp P        &kp LEFT_BRACKET &kp RIGHT_BRACKET &kp INSERT &kp HOME &kp PAGE_UP
+            /* row 3 */
+            &kp CAPSLOCK     &kp A         &kp S        &kp D     &kp F  &kp G  &kp H  &kp J
+            &kp K            &kp L         &kp SEMICOLON &kp SINGLE_QUOTE &kp ENTER &kp DELETE &kp END &kp PAGE_DOWN
+            /* row 4 */
+            &kp LEFT_SHIFT   &kp BACKSLASH &kp Z        &kp X     &kp C  &kp V  &kp B  &kp N
+            &kp M            &kp COMMA     &kp DOT      &kp SLASH &kp RIGHT_SHIFT &kp UP_ARROW
+            /* row 5 */
+            &kp LEFT_CONTROL &kp LEFT_WIN  &kp LEFT_ALT &kp SPACE &kp RIGHT_ARROW &lt 2 NON_US_HASH
+            /* row 6 */
+            &kp RIGHT_ALT    &kp RIGHT_GUI &lt 3 K_APP  &kp RIGHT_CONTROL &kp LEFT_ARROW &kp DOWN_ARROW
+            /* numpad (cols 16-19) — transparent in default layer */
+            NP_TRANS
             >;
         };
-		
+
+        /* ----------------------------------------------------------
+         *  Layer 1 — keypad_layer
+         *  Numpad keys active; main keyboard transparent.
+         *      PAD_1  PAD_2  PAD_3  PAD_4
+         *    ┌──────┬──────┬──────┬──────┐
+         *  0 │  NUM │  /   │  *   │  -   │
+         *    ├──────┼──────┼──────┼──────┤
+         *  1 │  7   │  8   │  9   │  +   │
+         *    ├──────┼──────┼──────┼──────┤
+         *  2 │  4   │  5   │  6   │      │
+         *    ├──────┼──────┼──────┼──────┤
+         *  3 │  1   │  2   │  3   │      │
+         *    ├──────┼──────┼──────┼──────┤
+         *  4 │  0   │      │  .   │  ENT │
+         *    └──────┴──────┴──────┴──────┘
+         * ---------------------------------------------------------- */
+        keypad_layer {
+            bindings = <
+            /* row 0 — main keyboard transparent */
+            &trans &trans &trans &trans &trans &trans &trans &trans
+            &trans &trans &trans &trans &trans &trans &trans &trans
+            /* row 1 */
+            &trans &trans &trans &trans &trans &trans &trans &trans
+            &trans &trans &trans &trans &trans &trans
+            /* row 2 */
+            &trans &trans &trans &trans &trans &trans &trans &trans
+            &trans &trans &trans &trans &trans &trans &trans &trans
+            /* row 3 */
+            &trans &trans &trans &trans &trans &trans &trans &trans
+            &trans &trans &trans &trans &trans &trans &trans &trans
+            /* row 4 */
+            &trans &trans &trans &trans &trans &trans &trans &trans
+            &trans &trans &trans &trans &trans &trans
+            /* row 5 */
+            &trans &trans &trans &trans &trans &trans
+            /* row 6 */
+            &trans &trans &trans &trans &trans &trans
+            /* numpad (cols 16-19) — actual numpad bindings */
+            &kp KP_NUMLOCK  &kp KP_DIVIDE   &kp KP_ASTERISK &kp KP_SUBTRACT
+            &kp KP_N7       &kp KP_N8       &kp KP_N9       &kp KP_PLUS
+            &kp KP_N4       &kp KP_N5       &kp KP_N6
+            &kp KP_N1       &kp KP_N2       &kp KP_N3
+            &kp KP_N0                       &kp KP_DOT      &kp KP_ENTER
+            >;
+        };
+
+        /* ----------------------------------------------------------
+         *  Layer 2 — ital_grave  (hold IT` = NON_US_HASH key)
+         *
+         *  Vowels → grave-accented character
+         *  Shift + vowel → uppercase grave-accented character
+         *  All other keys → transparent (default layer)
+         *
+         *  Characters: a→à  e→è  i→ì  o→ò  u→ù
+         *              A→À  E→È  I→Ì  O→Ò  U→Ù
+         *
+         *  NOTE: Windows only, requires NumLock ON.
+         * ---------------------------------------------------------- */
+        ital_grave {
+            bindings = <
+            /* row 0 — function row, all transparent */
+            &trans &trans &trans &trans &trans &trans &trans &trans
+            &trans &trans &trans &trans &trans &trans &trans &trans
+            /* row 1 — number row, all transparent */
+            &trans &trans &trans &trans &trans &trans &trans &trans
+            &trans &trans &trans &trans &trans &trans
+            /* row 2 — TAB Q W [E] R T Y [U] [I] [O] P [ ] INS HOM PGU */
+            &trans &trans &trans &mm_e_gr &trans &trans &trans &mm_u_gr
+            &mm_i_gr &mm_o_gr &trans &trans &trans &trans &trans &trans
+            /* row 3 — CAP [A] S D F G H J K L ; ' ENT DEL END PGD */
+            &trans &mm_a_gr &trans &trans &trans &trans &trans &trans
+            &trans &trans &trans &trans &trans &trans &trans &trans
+            /* row 4 — shift row, all transparent */
+            &trans &trans &trans &trans &trans &trans &trans &trans
+            &trans &trans &trans &trans &trans &trans
+            /* row 5 */
+            &trans &trans &trans &trans &trans &trans
+            /* row 6 */
+            &trans &trans &trans &trans &trans &trans
+            /* numpad */
+            NP_TRANS
+            >;
+        };
+
+        /* ----------------------------------------------------------
+         *  Layer 3 — ital_acute  (hold IT' = K_APP key)
+         *
+         *  Characters: a→á  e→é  i→í  o→ó  u→ú
+         *              A→Á  E→É  I→Í  O→Ó  U→Ú
+         * ---------------------------------------------------------- */
+        ital_acute {
+            bindings = <
+            /* row 0 */
+            &trans &trans &trans &trans &trans &trans &trans &trans
+            &trans &trans &trans &trans &trans &trans &trans &trans
+            /* row 1 */
+            &trans &trans &trans &trans &trans &trans &trans &trans
+            &trans &trans &trans &trans &trans &trans
+            /* row 2 — TAB Q W [E] R T Y [U] [I] [O] P [ ] INS HOM PGU */
+            &trans &trans &trans &mm_e_ac &trans &trans &trans &mm_u_ac
+            &mm_i_ac &mm_o_ac &trans &trans &trans &trans &trans &trans
+            /* row 3 — CAP [A] S D F G H J K L ; ' ENT DEL END PGD */
+            &trans &mm_a_ac &trans &trans &trans &trans &trans &trans
+            &trans &trans &trans &trans &trans &trans &trans &trans
+            /* row 4 */
+            &trans &trans &trans &trans &trans &trans &trans &trans
+            &trans &trans &trans &trans &trans &trans
+            /* row 5 */
+            &trans &trans &trans &trans &trans &trans
+            /* row 6 */
+            &trans &trans &trans &trans &trans &trans
+            /* numpad */
+            NP_TRANS
+            >;
+        };
+
     };
-  };
+};

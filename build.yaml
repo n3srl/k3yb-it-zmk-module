@@ -18,5 +18,5 @@
 #
 ---
 include:
-  - board: nice_nano//zmk
+  - board: nice_nano/nrf52840/zmk
     shield: k3yb_it

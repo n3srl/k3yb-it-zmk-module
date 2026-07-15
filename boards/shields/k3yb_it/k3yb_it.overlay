@@ -99,32 +99,16 @@
      *    Inh = LED_OUTPUT= D9  = pro_micro 9  (active LOW = enable)
      *
      *  LED select (A:B):
-     *    00 → Y0 → Num Lock LED
-     *    01 → Y1 → Caps Lock LED
-     *    10 → Y2 → Scroll Lock LED
-     *    11 → Y3 → Mic On LED
+     *    00 -> Y0 -> Num Lock LED
+     *    01 -> Y1 -> Caps Lock LED
+     *    10 -> Y2 -> Scroll Lock LED
+     *    11 -> Y3 -> Mic On LED
      *
-     *  ZMK does not have a built-in mux LED driver.
-     *  A custom zmk module or CONFIG_ZMK_LED_INDICATORS extension is needed.
-     *  The gpio-key nodes below expose the pins for a future driver.
+     *  ZMK does not have a built-in mux LED driver; a custom zmk module
+     *  is required.  GPIO nodes are intentionally omitted here until a
+     *  proper binding (e.g. gpio-leds or a custom zmk-mux-led driver)
+     *  is available.  Connect: A->pro_micro 1, B->pro_micro 0, Inh->pro_micro 9.
      * --------------------------------------------------------------- */
-    led_mux_a: gpio_led_mux_a {
-        compatible = "zmk,gpio-key";
-        gpios = <&pro_micro 1 GPIO_ACTIVE_HIGH>;   /* A select = D1 */
-        label = "LED_MUX_A";
-    };
-
-    led_mux_b: gpio_led_mux_b {
-        compatible = "zmk,gpio-key";
-        gpios = <&pro_micro 0 GPIO_ACTIVE_HIGH>;   /* B select = D0 */
-        label = "LED_MUX_B";
-    };
-
-    led_output: gpio_led_output {
-        compatible = "zmk,gpio-key";
-        gpios = <&pro_micro 9 GPIO_ACTIVE_LOW>;    /* Inh = D9, active-low */
-        label = "LED_OUTPUT";
-    };
 
     /* ---------------------------------------------------------------
      *  OLED predisposition (SSD1306 128x32, I2C)

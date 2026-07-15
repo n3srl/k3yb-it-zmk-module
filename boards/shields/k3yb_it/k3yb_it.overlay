@@ -25,7 +25,7 @@
         /* numpad — 4 direct columns; placed at cols 16-19 to avoid ghost keys */
         matrix {
             kscan = <&kscan1>;
-            column-offset = <16>;
+            col-offset = <16>;
         };
     };
 

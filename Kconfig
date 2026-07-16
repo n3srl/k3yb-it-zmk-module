@@ -1,0 +1,5 @@
+config K3YB_KSCAN_GPIO_DEMUX
+    bool "k3yb demux kscan driver with active discharge and settle time"
+    default y
+    depends on DT_HAS_K3YB_KSCAN_GPIO_DEMUX_ENABLED
+    select GPIO

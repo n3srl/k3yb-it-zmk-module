@@ -79,7 +79,10 @@
      *  → column order is handled by the matrix transform below.
      * --------------------------------------------------------------- */
     kscan2: kscan_demux {
-        compatible = "zmk,kscan-gpio-demux";
+        /* custom fork of zmk,kscan-gpio-demux with active row discharge
+         * to kill ghost keys from residual charge (see drivers/kscan/) */
+        compatible = "k3yb,kscan-gpio-demux";
+        settle-time-us = <10>;
         wakeup-source;
 
         /* row sense pins - input to MCU, pulled down, driven high through

@@ -1,0 +1,28 @@
+# Copyright (c) 2020, The ZMK Contributors
+# SPDX-License-Identifier: MIT
+
+description: |
+  GPIO keyboard demux controller with active input discharge and
+  configurable settle time (fork of zmk,kscan-gpio-demux).
+
+compatible: "k3yb,kscan-gpio-demux"
+
+include: kscan.yaml
+
+properties:
+  input-gpios:
+    type: phandle-array
+    required: true
+  output-gpios:
+    type: phandle-array
+    required: true
+  debounce-period:
+    type: int
+    default: 5
+  settle-time-us:
+    type: int
+    default: 10
+    description: Microseconds to wait after an address change before reading inputs
+  polling-interval-msec:
+    type: int
+    default: 25

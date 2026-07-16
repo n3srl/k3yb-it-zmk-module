@@ -4,7 +4,7 @@
     chosen {
         zmk,kscan = &kscan0;
         zmk,matrix_transform = &demux_transform;
-        /* zmk,display = &oled; */   /* uncomment when OLED is wired */
+        zephyr,display = &oled;
     };
 
     /* ---------------------------------------------------------------

@@ -2,55 +2,9 @@
 
 / {
     chosen {
-        zmk,kscan = &kscan0;
+        zmk,kscan = &kscan2;
         zmk,matrix_transform = &demux_transform;
         zephyr,display = &oled;
-    };
-
-    /* ---------------------------------------------------------------
-     *  Composite kscan: 7 rows x 16 cols (main via MUX) +
-     *                   5 rows x 4 cols  (numpad via direct GPIOs)
-     * --------------------------------------------------------------- */
-    kscan0: kscan_composite {
-        compatible = "zmk,kscan-composite";
-        rows = <7>;
-        columns = <20>;   /* 16 MUX cols + 4 direct pad cols */
-
-        /* main keyboard — 16 columns via CD74HC4067M 16:1 MUX */
-        demux {
-            kscan = <&kscan2>;
-            /* default offset (0,0): cols 0-15 */
-        };
-
-        /* numpad — 4 direct columns; placed at cols 16-19 to avoid ghost keys */
-        matrix {
-            kscan = <&kscan1>;
-            col-offset = <16>;
-        };
-    };
-
-    /* ---------------------------------------------------------------
-     *  Numpad direct-wired matrix (Pad Col 0-3, Rows 0-4)
-     *    Pad Col 0 = D10 = pro_micro 10
-     *    Pad Col 1 = D16 = pro_micro 16
-     *    Pad Col 2 = D14 = pro_micro 14
-     *    Pad Col 3 = D15 = pro_micro 15
-     * --------------------------------------------------------------- */
-    kscan1: kscan_matrix {
-        compatible = "zmk,kscan-gpio-matrix";
-        wakeup-source;
-        diode-direction = "col2row";
-
-        col-gpios = <&pro_micro 10 GPIO_ACTIVE_HIGH>   /* Pad Col 0 = D10 */
-                  , <&pro_micro 16 GPIO_ACTIVE_HIGH>   /* Pad Col 1 = D16 */
-                  , <&pro_micro 14 GPIO_ACTIVE_HIGH>   /* Pad Col 2 = D14 */
-                  , <&pro_micro 15 GPIO_ACTIVE_HIGH>;  /* Pad Col 3 = D15 */
-
-        row-gpios = <&pro_micro 8 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>  /* Row 0 = D8 */
-                  , <&pro_micro 7 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>  /* Row 1 = D7 */
-                  , <&pro_micro 6 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>  /* Row 2 = D6 */
-                  , <&pro_micro 5 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>  /* Row 3 = D5 */
-                  , <&pro_micro 4 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>; /* Row 4 = D4 */
     };
 
     /* ---------------------------------------------------------------
@@ -94,6 +48,13 @@
                      , <&pro_micro 20 GPIO_ACTIVE_HIGH>   /* S1 = NANO_MUX 2 = D20 */
                      , <&pro_micro 19 GPIO_ACTIVE_HIGH>   /* S2 = NANO_MUX 3 = D19 */
                      , <&pro_micro 18 GPIO_ACTIVE_HIGH>;  /* S3 = NANO_MUX 4 = D18 */
+
+        /* numpad columns, driven directly and scanned AFTER the 16 MUX
+         * addresses (sequential, never in parallel) as scan cols 16-19 */
+        direct-gpios = <&pro_micro 10 GPIO_ACTIVE_HIGH>   /* Pad Col 0 = D10 */
+                     , <&pro_micro 16 GPIO_ACTIVE_HIGH>   /* Pad Col 1 = D16 */
+                     , <&pro_micro 14 GPIO_ACTIVE_HIGH>   /* Pad Col 2 = D14 */
+                     , <&pro_micro 15 GPIO_ACTIVE_HIGH>;  /* Pad Col 3 = D15 */
     };
 	
     /* ---------------------------------------------------------------

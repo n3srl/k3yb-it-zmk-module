@@ -16,6 +16,10 @@ properties:
   output-gpios:
     type: phandle-array
     required: true
+  direct-gpios:
+    type: phandle-array
+    required: true
+    description: Directly driven column GPIOs, scanned sequentially after the demux columns
   debounce-period:
     type: int
     default: 5

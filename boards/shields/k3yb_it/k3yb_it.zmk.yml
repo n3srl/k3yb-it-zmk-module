@@ -1,0 +1,7 @@
+file_format: "1"
+id: k3yb_it
+name: k3yb.it
+type: shield
+requires: [pro_micro]
+features:
+  - keys

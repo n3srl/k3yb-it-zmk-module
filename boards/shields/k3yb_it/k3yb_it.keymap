@@ -362,8 +362,8 @@
          * ---------------------------------------------------------- */
         ital_grave {
             bindings = <
-            /* row 0 â€” function row, all transparent */
-            &trans &trans &trans &trans &trans &trans &trans &trans
+            /* row 0: hold IT` + ESC = bootloader (flash mode), rest transparent */
+            &bootloader &trans &trans &trans &trans &trans &trans &trans
             &trans &trans &trans &trans &trans &trans &trans &trans
             /* row 1 â€” number row, all transparent */
             &trans &trans &trans &trans &trans &trans &trans &trans

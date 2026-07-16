@@ -110,36 +110,6 @@
      *  is available.  Connect: A->pro_micro 1, B->pro_micro 0, Inh->pro_micro 9.
      * --------------------------------------------------------------- */
 
-    /* ---------------------------------------------------------------
-     *  OLED predisposition (SSD1306 128x32, I2C)
-     *
-     *  Connect SSD1306:  SDA and SCL to the nice!nano v2 I2C pads.
-     *  Verify chosen SDA/SCL pins do not conflict with row/col GPIOs.
-     *  Enable in config/k3yb_it.conf: CONFIG_ZMK_DISPLAY=y
-     *  Then uncomment "zmk,display = &oled" in chosen above.
-     *
-     *  Uncomment the block below once the display is physically wired:
-     * --------------------------------------------------------------- */
-    /*
-    &i2c0 {
-        status = "okay";
-        oled: ssd1306@3c {
-            compatible = "solomon,ssd1306fb";
-            reg = <0x3c>;
-            width = <128>;
-            height = <32>;
-            segment-offset = <0>;
-            page-offset = <0>;
-            display-offset = <0>;
-            multiplex-ratio = <31>;
-            segment-remap;
-            com-invdir;
-            com-sequential;
-            prechargep = <0x22>;
-        };
-    };
-    */
-
     demux_transform: matrix_transform {
         compatible = "zmk,matrix-transform";
         rows = <7>;
@@ -190,5 +160,50 @@
             /* numpad row 4: 0       .   ENT  */
             RC(4,16)          RC(4,18) RC(4,19)
         >;
+    };
+};
+
+/* -------------------------------------------------------------------
+ *  OLED display (SSD1306, I2C) on the inner nice!nano v2 pads:
+ *    SDA = P1.01   SCL = P1.02   (P1.07 left spare)
+ *    plus VCC -> 3.3V, GND -> GND
+ *  Enable with CONFIG_ZMK_DISPLAY=y in config/k3yb_it.conf and
+ *  uncomment "zmk,display = &oled" in the chosen node above.
+ * ------------------------------------------------------------------- */
+&pinctrl {
+    i2c0_k3yb_default: i2c0_k3yb_default {
+        group1 {
+            psels = <NRF_PSEL(TWIM_SDA, 1, 1)>,   /* P1.01 */
+                    <NRF_PSEL(TWIM_SCL, 1, 2)>;   /* P1.02 */
+        };
+    };
+    i2c0_k3yb_sleep: i2c0_k3yb_sleep {
+        group1 {
+            psels = <NRF_PSEL(TWIM_SDA, 1, 1)>,
+                    <NRF_PSEL(TWIM_SCL, 1, 2)>;
+            low-power-enable;
+        };
+    };
+};
+
+&i2c0 {
+    status = "okay";
+    pinctrl-0 = <&i2c0_k3yb_default>;
+    pinctrl-1 = <&i2c0_k3yb_sleep>;
+    pinctrl-names = "default", "sleep";
+
+    oled: ssd1306@3c {
+        compatible = "solomon,ssd1306fb";
+        reg = <0x3c>;
+        width = <128>;
+        height = <32>;
+        segment-offset = <0>;
+        page-offset = <0>;
+        display-offset = <0>;
+        multiplex-ratio = <31>;
+        segment-remap;
+        com-invdir;
+        com-sequential;
+        prechargep = <0x22>;
     };
 };

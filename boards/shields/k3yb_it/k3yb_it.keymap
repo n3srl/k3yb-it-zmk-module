@@ -297,8 +297,12 @@
             &kp LEFT_CONTROL &kp LEFT_WIN  &kp LEFT_ALT &kp SPACE &kp RIGHT_ARROW &lt 2 NON_US_HASH
             /* row 6 */
             &kp RIGHT_ALT    &kp RIGHT_GUI &lt 3 K_APP  &kp RIGHT_CONTROL &kp LEFT_ARROW &kp DOWN_ARROW
-            /* numpad (cols 16-19) â€” transparent in default layer */
-            NP_TRANS
+            /* numpad (cols 16-19) — active directly in the default layer */
+            &kp KP_NUMLOCK  &kp KP_DIVIDE   &kp KP_ASTERISK &kp KP_SUBTRACT
+            &kp KP_N7       &kp KP_N8       &kp KP_N9       &kp KP_PLUS
+            &kp KP_N4       &kp KP_N5       &kp KP_N6
+            &kp KP_N1       &kp KP_N2       &kp KP_N3
+            &kp KP_N0                       &kp KP_DOT      &kp KP_ENTER
             >;
         };
 

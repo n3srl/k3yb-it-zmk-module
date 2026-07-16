@@ -22,11 +22,18 @@
             /* default offset (0,0): cols 0-15 */
         };
 
-        /* numpad — 4 direct columns; placed at cols 16-19 to avoid ghost keys */
-        matrix {
-            kscan = <&kscan1>;
-            col-offset = <16>;
-        };
+        /* numpad — 4 direct columns; placed at cols 16-19 to avoid ghost keys
+         *
+         * TEMPORARILY DISABLED for debugging: rows D8-D4 are shared with
+         * the demux scanner and the two drivers may conflict (matrix uses
+         * GPIO interrupts on the same pins demux polls). Re-enable once
+         * the main section scans correctly.
+         *
+         * matrix {
+         *     kscan = <&kscan1>;
+         *     col-offset = <16>;
+         * };
+         */
     };
 
     /* ---------------------------------------------------------------
@@ -38,6 +45,7 @@
      * --------------------------------------------------------------- */
     kscan1: kscan_matrix {
         compatible = "zmk,kscan-gpio-matrix";
+        status = "disabled";   /* TEMP: isolate demux scanner for debugging */
         wakeup-source;
         diode-direction = "col2row";
 

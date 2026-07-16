@@ -78,13 +78,15 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
         k_work_submit(&data->work.work);                                                           \
     }                                                                                              \
                                                                                                    \
-    /* Discharge rows then read them into column slot `slot` */                                    \
+    /* Optionally discharge rows, settle, then read them */                                        \
     static void kscan_gpio_sample_rows_##n(const struct device *dev, bool *state_col) {            \
-        for (int i = 0; i < INST_MATRIX_INPUTS(n); i++) {                                          \
-            gpio_pin_configure_dt(&kscan_gpio_input_specs_##n(dev)[i], GPIO_OUTPUT_INACTIVE);      \
-        }                                                                                          \
-        for (int i = 0; i < INST_MATRIX_INPUTS(n); i++) {                                          \
-            gpio_pin_configure_dt(&kscan_gpio_input_specs_##n(dev)[i], GPIO_INPUT);                \
+        if (DT_INST_PROP(n, active_discharge)) {                                                   \
+            for (int i = 0; i < INST_MATRIX_INPUTS(n); i++) {                                      \
+                gpio_pin_configure_dt(&kscan_gpio_input_specs_##n(dev)[i], GPIO_OUTPUT_INACTIVE);  \
+            }                                                                                      \
+            for (int i = 0; i < INST_MATRIX_INPUTS(n); i++) {                                      \
+                gpio_pin_configure_dt(&kscan_gpio_input_specs_##n(dev)[i], GPIO_INPUT);            \
+            }                                                                                      \
         }                                                                                          \
         k_busy_wait(SETTLE_TIME_US(n));                                                            \
         for (int i = 0; i < INST_MATRIX_INPUTS(n); i++) {                                          \

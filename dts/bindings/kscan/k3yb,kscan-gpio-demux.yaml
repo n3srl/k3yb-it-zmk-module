@@ -27,6 +27,13 @@ properties:
     type: int
     default: 10
     description: Microseconds to wait after an address change before reading inputs
+  active-discharge:
+    type: boolean
+    description: |
+      Actively drive rows low after each column change. Kills residual-charge
+      ghosting, but while a key is held it briefly shorts the driven-high
+      column into the driven-low row pin, stressing both beyond nRF specs.
+      Leave off unless ghosting is proven on healthy hardware.
   polling-interval-msec:
     type: int
     default: 25

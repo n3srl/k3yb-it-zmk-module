@@ -28,7 +28,10 @@
         /* custom fork of zmk,kscan-gpio-demux with active row discharge
          * to kill ghost keys from residual charge (see drivers/kscan/) */
         compatible = "k3yb,kscan-gpio-demux";
-        settle-time-us = <10>;
+        settle-time-us = <30>;
+        /* active-discharge intentionally OFF: it stresses pins when a key
+         * is held (col driven high shorted into row driven low).  Enable
+         * only if ghosting appears on healthy hardware. */
         wakeup-source;
 
         /* row sense pins - input to MCU, pulled down, driven high through

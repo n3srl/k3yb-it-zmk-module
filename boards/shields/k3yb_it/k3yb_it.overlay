@@ -54,11 +54,11 @@
                   , <&pro_micro 14 GPIO_ACTIVE_HIGH>   /* Pad Col 2 = D14 */
                   , <&pro_micro 15 GPIO_ACTIVE_HIGH>;  /* Pad Col 3 = D15 */
 
-        row-gpios = <&pro_micro 8 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>  /* Row 0 = D8 */
-                  , <&pro_micro 7 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>  /* Row 1 = D7 */
-                  , <&pro_micro 6 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>  /* Row 2 = D6 */
-                  , <&pro_micro 5 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>  /* Row 3 = D5 */
-                  , <&pro_micro 4 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>; /* Row 4 = D4 */
+        row-gpios = <&pro_micro 8 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>  /* Row 0 = D8 */
+                  , <&pro_micro 7 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>  /* Row 1 = D7 */
+                  , <&pro_micro 6 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>  /* Row 2 = D6 */
+                  , <&pro_micro 5 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>  /* Row 3 = D5 */
+                  , <&pro_micro 4 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>; /* Row 4 = D4 */
     };
 
     /* ---------------------------------------------------------------
@@ -82,14 +82,17 @@
         compatible = "zmk,kscan-gpio-demux";
         wakeup-source;
 
-        /* row sense pins - input to MCU, pulled high, active low when key pressed */
-        input-gpios = <&pro_micro 8 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>   /* Row 0 = D8 */
-                    , <&pro_micro 7 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>   /* Row 1 = D7 */
-                    , <&pro_micro 6 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>   /* Row 2 = D6 */
-                    , <&pro_micro 5 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>   /* Row 3 = D5 */
-                    , <&pro_micro 4 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>   /* Row 4 = D4 */
-                    , <&pro_micro 3 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>   /* Row 5 = D3 */
-                    , <&pro_micro 2 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;  /* Row 6 = D2 */
+        /* row sense pins - input to MCU, pulled down, driven high through
+         * the key diode (col->row) when pressed and the column is selected.
+         * REQUIRES the hardware fix: 4067 COM (pin 1) lifted from GND and
+         * tied to 3.3V (pin 24 is right across). */
+        input-gpios = <&pro_micro 8 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>   /* Row 0 = D8 */
+                    , <&pro_micro 7 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>   /* Row 1 = D7 */
+                    , <&pro_micro 6 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>   /* Row 2 = D6 */
+                    , <&pro_micro 5 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>   /* Row 3 = D5 */
+                    , <&pro_micro 4 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>   /* Row 4 = D4 */
+                    , <&pro_micro 3 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>   /* Row 5 = D3 */
+                    , <&pro_micro 2 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;  /* Row 6 = D2 */
 
         /* address select lines S0..S3 - output from MCU to MUX, LSB first */
         output-gpios = <&pro_micro 21 GPIO_ACTIVE_HIGH>   /* S0 = NANO_MUX 1 = D21 */

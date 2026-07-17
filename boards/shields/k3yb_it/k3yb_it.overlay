@@ -173,5 +173,8 @@
         reg = <0x3c>;
         width = <128>;
         height = <128>;
+        /* 0x51 interlaced rows on this module (COM split odd/even);
+         * 0x11 = column remap + COM remap without the odd/even split */
+        remap-value = <0x11>;
     };
 };

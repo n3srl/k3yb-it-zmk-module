@@ -165,8 +165,9 @@
         reg = <0x3c>;
         width = <128>;
         height = <128>;
-        /* 0x51 interlaced rows on this module (COM split odd/even);
-         * 0x11 = column remap + COM remap without the odd/even split */
-        remap-value = <0x11>;
+        /* Remap calibration: 0x51 = interlaced+stretched rows,
+         * 0x11 = rotated/striped. 0x00 = controller-native baseline;
+         * final value will be derived from the baseline photo. */
+        remap-value = <0x00>;
     };
 };

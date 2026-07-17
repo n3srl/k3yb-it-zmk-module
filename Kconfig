@@ -3,3 +3,20 @@ config K3YB_KSCAN_GPIO_DEMUX
     default y
     depends on DT_HAS_K3YB_KSCAN_GPIO_DEMUX_ENABLED
     select GPIO
+
+config K3YB_SSD1327
+    bool "k3yb SSD1327 grayscale OLED driver (mono over I2C)"
+    default y
+    depends on DT_HAS_K3YB_SSD1327_ENABLED
+    depends on DISPLAY
+    select I2C
+
+if K3YB_SSD1327
+
+config K3YB_SSD1327_FB_SIZE
+    int
+    default 8192
+    help
+      Shadow framebuffer size in bytes (width/2 * height).
+
+endif # K3YB_SSD1327

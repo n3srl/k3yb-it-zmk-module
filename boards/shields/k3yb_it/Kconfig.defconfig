@@ -3,18 +3,15 @@ if SHIELD_K3YB_IT
 config ZMK_KEYBOARD_NAME
     default "k3yb.it"
 
-# OLED display support: SSD1306 driver on I2C when display is enabled
+# OLED display: custom SSD1327 driver (see drivers/display) on I2C
 if ZMK_DISPLAY
-
-config SSD1306
-    default y
 
 config I2C
     default y
 
 endif # ZMK_DISPLAY
 
-# LVGL settings for a 128x32 monochrome OLED (matches upstream OLED shields)
+# LVGL settings for a 128x128 monochrome-driven OLED
 if LVGL
 
 config LV_Z_VDB_SIZE

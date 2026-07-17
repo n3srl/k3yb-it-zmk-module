@@ -1,0 +1,22 @@
+# Copyright (c) 2026 k3yb.it
+# SPDX-License-Identifier: MIT
+
+description: SSD1327 grayscale OLED driven as monochrome over I2C (custom k3yb driver)
+
+compatible: "k3yb,ssd1327"
+
+include: i2c-device.yaml
+
+properties:
+  width:
+    type: int
+    default: 128
+    description: Horizontal resolution in pixels
+  height:
+    type: int
+    default: 128
+    description: Vertical resolution in pixels
+  remap-value:
+    type: int
+    default: 0x51
+    description: Value for the 0xA0 segment remap register (orientation/mirroring)

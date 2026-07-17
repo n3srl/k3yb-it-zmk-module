@@ -168,18 +168,10 @@
     pinctrl-1 = <&i2c0_k3yb_sleep>;
     pinctrl-names = "default", "sleep";
 
-    oled: ssd1306@3c {
-        compatible = "solomon,ssd1306fb";
+    oled: ssd1327@3c {
+        compatible = "k3yb,ssd1327";
         reg = <0x3c>;
         width = <128>;
-        height = <32>;
-        segment-offset = <0>;
-        page-offset = <0>;
-        display-offset = <0>;
-        multiplex-ratio = <31>;
-        segment-remap;
-        com-invdir;
-        com-sequential;
-        prechargep = <0x22>;
+        height = <128>;
     };
 };

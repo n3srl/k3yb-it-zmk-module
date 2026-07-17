@@ -149,14 +149,14 @@
 &pinctrl {
     i2c0_k3yb_default: i2c0_k3yb_default {
         group1 {
-            psels = <NRF_PSEL(TWIM_SCL, 1, 1)>,   /* P1.01 = SCL (as wired) */
-                    <NRF_PSEL(TWIM_SDA, 1, 2)>;   /* P1.02 = SDA (as wired) */
+            psels = <NRF_PSEL(TWIM_SDA, 1, 1)>,   /* P1.01 */
+                    <NRF_PSEL(TWIM_SCL, 1, 2)>;   /* P1.02 */
         };
     };
     i2c0_k3yb_sleep: i2c0_k3yb_sleep {
         group1 {
-            psels = <NRF_PSEL(TWIM_SCL, 1, 1)>,
-                    <NRF_PSEL(TWIM_SDA, 1, 2)>;
+            psels = <NRF_PSEL(TWIM_SDA, 1, 1)>,
+                    <NRF_PSEL(TWIM_SCL, 1, 2)>;
             low-power-enable;
         };
     };

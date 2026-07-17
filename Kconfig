@@ -25,4 +25,11 @@ config K3YB_SSD1327_FB_SIZE
     help
       Shadow framebuffer size in bytes (width/2 * height).
 
+config K3YB_SSD1327_TEST_PATTERN
+    bool "Draw a calibration test pattern at init"
+    default n
+    help
+      Draws a geometric fingerprint (top edge, left edge, corner blocks)
+      at driver init to calibrate the panel remap from a photo.
+
 endif # K3YB_SSD1327

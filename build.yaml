@@ -32,5 +32,5 @@ include:
   - board: nice_nano_v2
     shield: k3yb_it
     snippet: zmk-usb-logging
-    cmake-args: -DCONFIG_ZMK_DISPLAY_STATUS_SCREEN_CUSTOM=n -DCONFIG_ZMK_DISPLAY_STATUS_SCREEN_BUILT_IN=y
-    artifact-name: k3yb_it_debug_builtinscreen
+    cmake-args: -DCONFIG_ZMK_DISPLAY=n -DCONFIG_DISPLAY=y -DCONFIG_K3YB_SSD1327_TEST_PATTERN=y
+    artifact-name: k3yb_it_display_testpattern

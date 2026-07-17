@@ -192,6 +192,39 @@ static int ssd1327_init(const struct device *dev) {
 
     /* clear GDDRAM (and shadow) before turning on */
     memset(data->fb, 0, sizeof(data->fb));
+
+#if IS_ENABLED(CONFIG_K3YB_SSD1327_TEST_PATTERN)
+    /* Geometry fingerprint to calibrate the panel mapping from a photo:
+     *  - 2px line along the full TOP edge (y = 0,1)
+     *  - 2px line along the full LEFT edge (x = 0,1)
+     *  - solid 24x24 block in the TOP-LEFT corner
+     *  - solid 8x8 block in the TOP-RIGHT corner
+     */
+    {
+        const uint16_t stride = cfg->width / 2;
+
+        for (uint16_t x = 0; x < cfg->width; x++) { /* top edge */
+            for (uint16_t y = 0; y < 2; y++) {
+                data->fb[y * stride + x / 2] |= (x & 1) ? 0x0F : 0xF0;
+            }
+        }
+        for (uint16_t y = 0; y < cfg->height; y++) { /* left edge */
+            data->fb[y * stride + 0] |= 0xF0;
+            data->fb[y * stride + 0] |= 0x0F;
+        }
+        for (uint16_t y = 0; y < 24; y++) { /* 24x24 top-left */
+            for (uint16_t x = 0; x < 24; x++) {
+                data->fb[y * stride + x / 2] |= (x & 1) ? 0x0F : 0xF0;
+            }
+        }
+        for (uint16_t y = 0; y < 8; y++) { /* 8x8 top-right */
+            for (uint16_t x = cfg->width - 8; x < cfg->width; x++) {
+                data->fb[y * stride + x / 2] |= (x & 1) ? 0x0F : 0xF0;
+            }
+        }
+    }
+#endif
+
     err = ssd1327_flush_rows(dev, 0, cfg->height - 1);
     if (err) {
         return err;

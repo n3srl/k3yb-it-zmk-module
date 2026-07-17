@@ -27,7 +27,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #define LED_MUX_NODE DT_INST(0, k3yb_led_mux)
 
-#define STEP_MS 2
+#define STEP_MS 1
 #define STATE_REFRESH_MS 100
 
 #define IND_NUMLOCK BIT(0)

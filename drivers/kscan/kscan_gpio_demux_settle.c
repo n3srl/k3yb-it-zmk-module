@@ -112,13 +112,23 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
             }                                                                                      \
         }                                                                                          \
                                                                                                    \
-        /* 2) direct-driven columns, strictly after the demux pass */                              \
+        /* 2) direct-driven columns, strictly after the demux pass.        */                      \
+        /* The mux cannot be disabled (EN hardwired low) and stays parked  */                      \
+        /* on the last address: a pressed key on that column keeps feeding */                      \
+        /* its row, which would ghost onto the direct columns.  Rows that  */                      \
+        /* read pressed on the parked address are therefore held at their  */                      \
+        /* previous direct-column state instead of being sampled.          */                      \
         for (int d = 0; d < INST_DIRECT_GPIOS(n); d++) {                                           \
             gpio_pin_set_dt(&kscan_gpio_direct_specs_##n(dev)[d], 1);                              \
             kscan_gpio_sample_rows_##n(dev, row_sample);                                           \
             gpio_pin_set_dt(&kscan_gpio_direct_specs_##n(dev)[d], 0);                              \
             for (int i = 0; i < INST_MATRIX_INPUTS(n); i++) {                                      \
-                read_state[INST_DEMUX_OUTPUTS(n) + d][i] = row_sample[i];                          \
+                if (read_state[INST_DEMUX_OUTPUTS(n) - 1][i]) {                                    \
+                    read_state[INST_DEMUX_OUTPUTS(n) + d][i] =                                     \
+                        data->matrix_state[i][INST_DEMUX_OUTPUTS(n) + d];                          \
+                } else {                                                                           \
+                    read_state[INST_DEMUX_OUTPUTS(n) + d][i] = row_sample[i];                      \
+                }                                                                                  \
             }                                                                                      \
         }                                                                                          \
                                                                                                    \

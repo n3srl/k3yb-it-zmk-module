@@ -155,6 +155,10 @@ static int ssd1327_set_contrast(const struct device *dev, const uint8_t contrast
     return ssd1327_cmds(dev, cmds, sizeof(cmds));
 }
 
+#if IS_ENABLED(CONFIG_K3YB_SSD1327_TEST_PATTERN)
+static int tp_start(const struct device *dev);
+#endif
+
 static int ssd1327_init(const struct device *dev) {
     const struct ssd1327_config *cfg = dev->config;
     struct ssd1327_data *data = dev->data;
@@ -193,42 +197,14 @@ static int ssd1327_init(const struct device *dev) {
     /* clear GDDRAM (and shadow) before turning on */
     memset(data->fb, 0, sizeof(data->fb));
 
-#if IS_ENABLED(CONFIG_K3YB_SSD1327_TEST_PATTERN)
-    /* Geometry fingerprint to calibrate the panel mapping from a photo:
-     *  - 2px line along the full TOP edge (y = 0,1)
-     *  - 2px line along the full LEFT edge (x = 0,1)
-     *  - solid 24x24 block in the TOP-LEFT corner
-     *  - solid 8x8 block in the TOP-RIGHT corner
-     */
-    {
-        const uint16_t stride = cfg->width / 2;
-
-        for (uint16_t x = 0; x < cfg->width; x++) { /* top edge */
-            for (uint16_t y = 0; y < 2; y++) {
-                data->fb[y * stride + x / 2] |= (x & 1) ? 0x0F : 0xF0;
-            }
-        }
-        for (uint16_t y = 0; y < cfg->height; y++) { /* left edge */
-            data->fb[y * stride + 0] |= 0xF0;
-            data->fb[y * stride + 0] |= 0x0F;
-        }
-        for (uint16_t y = 0; y < 24; y++) { /* 24x24 top-left */
-            for (uint16_t x = 0; x < 24; x++) {
-                data->fb[y * stride + x / 2] |= (x & 1) ? 0x0F : 0xF0;
-            }
-        }
-        for (uint16_t y = 0; y < 8; y++) { /* 8x8 top-right */
-            for (uint16_t x = cfg->width - 8; x < cfg->width; x++) {
-                data->fb[y * stride + x / 2] |= (x & 1) ? 0x0F : 0xF0;
-            }
-        }
-    }
-#endif
-
     err = ssd1327_flush_rows(dev, 0, cfg->height - 1);
     if (err) {
         return err;
     }
+
+#if IS_ENABLED(CONFIG_K3YB_SSD1327_TEST_PATTERN)
+    tp_start(dev);
+#endif
 
     return ssd1327_blanking_off(dev);
 }
@@ -241,6 +217,80 @@ static const struct display_driver_api ssd1327_api = {
     .set_pixel_format = ssd1327_set_pixel_format,
     .set_contrast = ssd1327_set_contrast,
 };
+
+#if IS_ENABLED(CONFIG_K3YB_SSD1327_TEST_PATTERN)
+/* Auto-cycling remap calibration: draws the geometry fingerprint (top edge,
+ * left edge, 24x24 top-left block, 8x8 top-right block) plus N indicator
+ * blocks in the centre, for each candidate remap value, 5 s each.
+ * The user reports the indicator count of the correct-looking config.
+ */
+static const uint8_t remap_candidates[] = {0x00, 0x40, 0x51, 0x42, 0x11, 0x53, 0x14, 0x46};
+
+static void tp_px(const struct device *dev, uint16_t x, uint16_t y) {
+    const struct ssd1327_config *cfg = dev->config;
+    struct ssd1327_data *data = dev->data;
+    uint8_t *cell = &data->fb[y * (cfg->width / 2) + x / 2];
+
+    *cell |= (x & 1) ? 0x0F : 0xF0;
+}
+
+static void tp_thread_fn(void *p1, void *p2, void *p3) {
+    const struct device *dev = p1;
+    const struct ssd1327_config *cfg = dev->config;
+    struct ssd1327_data *data = dev->data;
+    size_t i = 0;
+
+    ARG_UNUSED(p2);
+    ARG_UNUSED(p3);
+
+    while (1) {
+        const uint8_t remap[] = {0xA0, remap_candidates[i]};
+
+        ssd1327_cmds(dev, remap, sizeof(remap));
+
+        memset(data->fb, 0, CONFIG_K3YB_SSD1327_FB_SIZE);
+        for (uint16_t x = 0; x < cfg->width; x++) { /* top edge, 2 px */
+            tp_px(dev, x, 0);
+            tp_px(dev, x, 1);
+        }
+        for (uint16_t y = 0; y < cfg->height; y++) { /* left edge, 2 px */
+            tp_px(dev, 0, y);
+            tp_px(dev, 1, y);
+        }
+        for (uint16_t y = 0; y < 24; y++) { /* 24x24 top-left */
+            for (uint16_t x = 0; x < 24; x++) {
+                tp_px(dev, x, y);
+            }
+        }
+        for (uint16_t y = 0; y < 8; y++) { /* 8x8 top-right */
+            for (uint16_t x = cfg->width - 8; x < cfg->width; x++) {
+                tp_px(dev, x, y);
+            }
+        }
+        /* indicator: i+1 8x8 blocks across the centre */
+        for (size_t b = 0; b <= i; b++) {
+            for (uint16_t y = 60; y < 68; y++) {
+                for (uint16_t x = 8 + b * 14; x < 16 + b * 14; x++) {
+                    tp_px(dev, x, y);
+                }
+            }
+        }
+        ssd1327_flush_rows(dev, 0, cfg->height - 1);
+
+        k_sleep(K_SECONDS(5));
+        i = (i + 1) % ARRAY_SIZE(remap_candidates);
+    }
+}
+
+static K_THREAD_STACK_DEFINE(tp_stack, 768);
+static struct k_thread tp_thread;
+
+static int tp_start(const struct device *dev) {
+    k_thread_create(&tp_thread, tp_stack, K_THREAD_STACK_SIZEOF(tp_stack), tp_thread_fn,
+                    (void *)dev, NULL, NULL, K_PRIO_PREEMPT(14), 0, K_MSEC(1500));
+    return 0;
+}
+#endif /* CONFIG_K3YB_SSD1327_TEST_PATTERN */
 
 #define SSD1327_DEFINE(n)                                                                          \
     static const struct ssd1327_config ssd1327_config_##n = {                                      \

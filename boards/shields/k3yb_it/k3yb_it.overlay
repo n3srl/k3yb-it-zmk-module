@@ -61,24 +61,16 @@
     };
 	
     /* ---------------------------------------------------------------
-     *  STATUS LED predisposition  (CD4052 dual 4:1 MUX, U2)
-     *
-     *  Pin map:
-     *    A   = LED_MUX 1 = D1  = pro_micro 1
-     *    B   = LED_MUX 2 = D0  = pro_micro 0
-     *    Inh = LED_OUTPUT= D9  = pro_micro 9  (active LOW = enable)
-     *
-     *  LED select (A:B):
-     *    00 -> Y0 -> Num Lock LED
-     *    01 -> Y1 -> Caps Lock LED
-     *    10 -> Y2 -> Scroll Lock LED
-     *    11 -> Y3 -> Mic On LED
-     *
-     *  ZMK does not have a built-in mux LED driver; a custom zmk module
-     *  is required.  GPIO nodes are intentionally omitted here until a
-     *  proper binding (e.g. gpio-leds or a custom zmk-mux-led driver)
-     *  is available.  Connect: A->pro_micro 1, B->pro_micro 0, Inh->pro_micro 9.
+     *  Status LEDs via CD4052 dual 4:1 MUX (see src/led_mux.c)
+     *    Y0 = Num Lock, Y1 = Caps Lock, Y2 = Scroll Lock,
+     *    Y3 = accent layer active
      * --------------------------------------------------------------- */
+    led_mux: led_mux {
+        compatible = "k3yb,led-mux";
+        a-gpios = <&pro_micro 1 GPIO_ACTIVE_HIGH>;    /* A   = LED_MUX 1 = D1 */
+        b-gpios = <&pro_micro 0 GPIO_ACTIVE_HIGH>;    /* B   = LED_MUX 2 = D0 */
+        inh-gpios = <&pro_micro 9 GPIO_ACTIVE_LOW>;   /* Inh = LED_OUTPUT = D9, low = enabled */
+    };
 
     demux_transform: matrix_transform {
         compatible = "zmk,matrix-transform";

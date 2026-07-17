@@ -4,6 +4,12 @@ config K3YB_KSCAN_GPIO_DEMUX
     depends on DT_HAS_K3YB_KSCAN_GPIO_DEMUX_ENABLED
     select GPIO
 
+config K3YB_LED_MUX
+    bool "k3yb status LEDs via CD4052 mux"
+    default y
+    depends on DT_HAS_K3YB_LED_MUX_ENABLED
+    select GPIO
+
 config K3YB_SSD1327
     bool "k3yb SSD1327 grayscale OLED driver (mono over I2C)"
     default y

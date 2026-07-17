@@ -1,0 +1,24 @@
+# Copyright (c) 2026 k3yb.it
+# SPDX-License-Identifier: MIT
+
+description: |
+  Four status LEDs multiplexed through a CD4052 dual 4:1 analog mux.
+  The driver cycles the A/B select lines and gates the inhibit pin,
+  time-multiplexing the LEDs at ~125 Hz.
+  Y0 = Num Lock, Y1 = Caps Lock, Y2 = Scroll Lock, Y3 = accent layer.
+
+compatible: "k3yb,led-mux"
+
+properties:
+  a-gpios:
+    type: phandle-array
+    required: true
+    description: Select bit A (LSB)
+  b-gpios:
+    type: phandle-array
+    required: true
+    description: Select bit B (MSB)
+  inh-gpios:
+    type: phandle-array
+    required: true
+    description: Inhibit pin (drive to inactive level to light the selected LED)

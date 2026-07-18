@@ -98,38 +98,44 @@ static void logo_done_cb(lv_timer_t *timer) {
 
 lv_obj_t *zmk_display_status_screen(void) {
     lv_obj_t *screen = lv_obj_create(NULL);
+    const bool tall = lv_disp_get_ver_res(NULL) >= 128;
 
-    /* ---- boot logo (see src/n3_logo.c, generated from logo/n3.png) ---- */
-    logo_label = lv_img_create(screen);
-    lv_img_set_src(logo_label, &n3_logo);
-    lv_obj_align(logo_label, LV_ALIGN_CENTER, 0, 0);
-
-    /* ---- status widgets (hidden until the logo is done) ---- */
     layer_label = lv_label_create(screen);
-#if IS_ENABLED(CONFIG_LV_FONT_MONTSERRAT_24)
-    lv_obj_set_style_text_font(layer_label, &lv_font_montserrat_24, 0);
-#endif
     lv_label_set_text(layer_label, "BASE");
-    lv_obj_align(layer_label, LV_ALIGN_TOP_MID, 0, 8);
-
     locks_label = lv_label_create(screen);
     lv_label_set_text(locks_label, "num caps scrl");
-    lv_obj_align(locks_label, LV_ALIGN_TOP_MID, 0, 48);
-
     wpm_label = lv_label_create(screen);
     lv_label_set_text(wpm_label, "WPM 0");
-    lv_obj_align(wpm_label, LV_ALIGN_TOP_MID, 0, 76);
-
     batt_label = lv_label_create(screen);
     lv_label_set_text(batt_label, "BAT --%");
-    lv_obj_align(batt_label, LV_ALIGN_BOTTOM_MID, 0, -4);
 
-    lv_obj_add_flag(layer_label, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(locks_label, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(wpm_label, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(batt_label, LV_OBJ_FLAG_HIDDEN);
+    if (tall) {
+        /* 128x128: boot logo + spaced-out layout */
+        logo_label = lv_img_create(screen);
+        lv_img_set_src(logo_label, &n3_logo);
+        lv_obj_align(logo_label, LV_ALIGN_CENTER, 0, 0);
 
-    lv_timer_create(logo_done_cb, LOGO_MS, NULL);
+#if IS_ENABLED(CONFIG_LV_FONT_MONTSERRAT_24)
+        lv_obj_set_style_text_font(layer_label, &lv_font_montserrat_24, 0);
+#endif
+        lv_obj_align(layer_label, LV_ALIGN_TOP_MID, 0, 8);
+        lv_obj_align(locks_label, LV_ALIGN_TOP_MID, 0, 48);
+        lv_obj_align(wpm_label, LV_ALIGN_TOP_MID, 0, 76);
+        lv_obj_align(batt_label, LV_ALIGN_BOTTOM_MID, 0, -4);
+
+        lv_obj_add_flag(layer_label, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(locks_label, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(wpm_label, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(batt_label, LV_OBJ_FLAG_HIDDEN);
+        lv_timer_create(logo_done_cb, LOGO_MS, NULL);
+    } else {
+        /* 128x32: compact two-line layout, no logo */
+        lv_obj_align(layer_label, LV_ALIGN_TOP_LEFT, 0, 0);
+        lv_obj_align(batt_label, LV_ALIGN_TOP_RIGHT, 0, 0);
+        lv_obj_align(locks_label, LV_ALIGN_BOTTOM_LEFT, 0, 0);
+        lv_obj_align(wpm_label, LV_ALIGN_BOTTOM_RIGHT, 0, 0);
+    }
+
     lv_timer_create(refresh_cb, REFRESH_MS, NULL);
 
     return screen;

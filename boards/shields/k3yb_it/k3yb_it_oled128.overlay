@@ -1,0 +1,20 @@
+/* k3yb.it with SSD1327 128x128 grayscale OLED (1.5", 4-pin I2C) */
+#include "k3yb_it.dtsi"
+
+/ {
+    chosen {
+        zephyr,display = &oled;
+    };
+};
+
+&i2c0 {
+    oled: ssd1327@3c {
+        compatible = "k3yb,ssd1327";
+        reg = <0x3c>;
+        width = <128>;
+        height = <128>;
+        /* 0x51 = standard orientation; the visible row structure is the
+         * panel's physical pixel gaps, not an addressing artifact. */
+        remap-value = <0x51>;
+    };
+};

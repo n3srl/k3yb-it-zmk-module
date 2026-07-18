@@ -1,2 +1,8 @@
 config SHIELD_K3YB_IT
     def_bool $(shields_list_contains,k3yb_it)
+
+config SHIELD_K3YB_IT_OLED32
+    def_bool $(shields_list_contains,k3yb_it_oled32)
+
+config SHIELD_K3YB_IT_OLED128
+    def_bool $(shields_list_contains,k3yb_it_oled128)

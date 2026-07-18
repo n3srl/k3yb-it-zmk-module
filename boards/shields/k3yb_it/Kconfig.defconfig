@@ -1,9 +1,8 @@
-if SHIELD_K3YB_IT
+if SHIELD_K3YB_IT || SHIELD_K3YB_IT_OLED32 || SHIELD_K3YB_IT_OLED128
 
 config ZMK_KEYBOARD_NAME
     default "k3yb.it"
 
-# OLED display: custom SSD1327 driver (see drivers/display) on I2C
 if ZMK_DISPLAY
 
 config I2C
@@ -11,7 +10,7 @@ config I2C
 
 endif # ZMK_DISPLAY
 
-# LVGL settings for a 128x128 monochrome-driven OLED
+# LVGL settings for the monochrome-driven OLED variants
 if LVGL
 
 config LV_Z_VDB_SIZE
@@ -29,4 +28,12 @@ endchoice
 
 endif # LVGL
 
-endif # SHIELD_K3YB_IT
+endif # any k3yb_it variant
+
+# SSD1306 in-tree driver for the 128x32 variant
+if SHIELD_K3YB_IT_OLED32 && ZMK_DISPLAY
+
+config SSD1306
+    default y
+
+endif

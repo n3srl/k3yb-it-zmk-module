@@ -1,36 +1,26 @@
 # This file generates the GitHub Actions matrix.
-# For simple board + shield combinations, add them to the top level board and
-# shield arrays, for more control, add individual board + shield combinations
-# to the `include` property. You can also use the `cmake-args` property to
-# pass flags to the build command and `artifact-name` to assign a name to
-# distinguish build outputs from each other:
-#
-# board: [ "nice_nano_v2" ]
-# shield: [ "corne_left", "corne_right" ]
-# include:
-#   - board: bdn9_rev2
-#   - board: nice_nano_v2
-#     shield: reviung41
-#   - board: nice_nano_v2
-#     shield: corne_left
-#     cmake-args: -DCONFIG_ZMK_USB_LOGGING=y
-#     artifact-name: corne_left_with_logging
-#
+# Shield variants:
+#   k3yb_it          - no display
+#   k3yb_it_oled32   - SSD1306 128x32 OLED
+#   k3yb_it_oled128  - SSD1327 128x128 OLED
 ---
 include:
   - board: nice_nano_v2
     shield: k3yb_it
   - board: nice_nano_v2
-    shield: k3yb_it
-    snippet: zmk-usb-logging
-    artifact-name: k3yb_it_debug_logging
+    shield: k3yb_it_oled32
   - board: nice_nano_v2
-    shield: k3yb_it
-    snippet: zmk-usb-logging
-    cmake-args: -DCONFIG_ZMK_DISPLAY=n
-    artifact-name: k3yb_it_debug_nodisplay
+    shield: k3yb_it_oled128
   - board: nice_nano_v2
-    shield: k3yb_it
+    shield: k3yb_it_oled32
+    snippet: zmk-usb-logging
+    artifact-name: k3yb_it_oled32_debug
+  - board: nice_nano_v2
+    shield: k3yb_it_oled128
+    snippet: zmk-usb-logging
+    artifact-name: k3yb_it_oled128_debug
+  - board: nice_nano_v2
+    shield: k3yb_it_oled128
     snippet: zmk-usb-logging
     cmake-args: -DCONFIG_ZMK_DISPLAY=n -DCONFIG_DISPLAY=y -DCONFIG_K3YB_SSD1327_TEST_PATTERN=y
     artifact-name: k3yb_it_display_testpattern

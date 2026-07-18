@@ -9,18 +9,20 @@ include:
     shield: k3yb_it
   - board: nice_nano_v2
     shield: k3yb_it_oled32
+    artifact-name: k3yb_it_SSD1306_128x32
   - board: nice_nano_v2
     shield: k3yb_it_oled128
+    artifact-name: k3yb_it_SSD1327_128x128
   - board: nice_nano_v2
     shield: k3yb_it_oled32
     snippet: zmk-usb-logging
-    artifact-name: k3yb_it_oled32_debug
+    artifact-name: k3yb_it_SSD1306_128x32_debug
   - board: nice_nano_v2
     shield: k3yb_it_oled128
     snippet: zmk-usb-logging
-    artifact-name: k3yb_it_oled128_debug
+    artifact-name: k3yb_it_SSD1327_128x128_debug
   - board: nice_nano_v2
     shield: k3yb_it_oled128
     snippet: zmk-usb-logging
     cmake-args: -DCONFIG_ZMK_DISPLAY=n -DCONFIG_DISPLAY=y -DCONFIG_K3YB_SSD1327_TEST_PATTERN=y
-    artifact-name: k3yb_it_display_testpattern
+    artifact-name: k3yb_it_SSD1327_128x128_testpattern

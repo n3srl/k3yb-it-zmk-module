@@ -224,61 +224,56 @@ static const struct display_driver_api ssd1327_api = {
  * blocks in the centre, for each candidate remap value, 5 s each.
  * The user reports the indicator count of the correct-looking config.
  */
-static const uint8_t remap_candidates[] = {0x00, 0x40, 0x51, 0x42, 0x11, 0x53, 0x14, 0x46};
-
-static void tp_px(const struct device *dev, uint16_t x, uint16_t y) {
-    const struct ssd1327_config *cfg = dev->config;
-    struct ssd1327_data *data = dev->data;
-    uint8_t *cell = &data->fb[y * (cfg->width / 2) + x / 2];
-
-    *cell |= (x & 1) ? 0x0F : 0xF0;
-}
-
+/* Memory probes: raw GDDRAM writes that reveal the controller's actual
+ * byte->pixel mapping.  8 s per step, endless cycle:
+ *   step 1: whole window filled 0xFF        -> must be fully lit, uniform
+ *   step 2: 16 bytes 0xF0 at row 0          -> where the HIGH nibble lands
+ *   step 3: 16 bytes 0x0F at row 0          -> where the LOW  nibble lands
+ *   step 4: 1 byte 0xFF at every 8th column unit of row 0
+ *   step 5: 1 byte 0xFF at column 0 of rows 0..31
+ */
 static void tp_thread_fn(void *p1, void *p2, void *p3) {
     const struct device *dev = p1;
     const struct ssd1327_config *cfg = dev->config;
     struct ssd1327_data *data = dev->data;
-    size_t i = 0;
+    const uint16_t stride = cfg->width / 2;
+    size_t step = 0;
 
     ARG_UNUSED(p2);
     ARG_UNUSED(p3);
 
     while (1) {
-        const uint8_t remap[] = {0xA0, remap_candidates[i]};
-
-        ssd1327_cmds(dev, remap, sizeof(remap));
-
         memset(data->fb, 0, CONFIG_K3YB_SSD1327_FB_SIZE);
-        for (uint16_t x = 0; x < cfg->width; x++) { /* top edge, 2 px */
-            tp_px(dev, x, 0);
-            tp_px(dev, x, 1);
-        }
-        for (uint16_t y = 0; y < cfg->height; y++) { /* left edge, 2 px */
-            tp_px(dev, 0, y);
-            tp_px(dev, 1, y);
-        }
-        for (uint16_t y = 0; y < 24; y++) { /* 24x24 top-left */
-            for (uint16_t x = 0; x < 24; x++) {
-                tp_px(dev, x, y);
+
+        switch (step) {
+        case 0: /* full fill */
+            memset(data->fb, 0xFF, CONFIG_K3YB_SSD1327_FB_SIZE);
+            break;
+        case 1: /* high nibbles, first 16 byte-units of row 0 */
+            for (int c = 0; c < 16; c++) {
+                data->fb[c] = 0xF0;
             }
-        }
-        for (uint16_t y = 0; y < 8; y++) { /* 8x8 top-right */
-            for (uint16_t x = cfg->width - 8; x < cfg->width; x++) {
-                tp_px(dev, x, y);
+            break;
+        case 2: /* low nibbles, first 16 byte-units of row 0 */
+            for (int c = 0; c < 16; c++) {
+                data->fb[c] = 0x0F;
             }
-        }
-        /* indicator: i+1 8x8 blocks across the centre */
-        for (size_t b = 0; b <= i; b++) {
-            for (uint16_t y = 60; y < 68; y++) {
-                for (uint16_t x = 8 + b * 14; x < 16 + b * 14; x++) {
-                    tp_px(dev, x, y);
-                }
+            break;
+        case 3: /* one full byte every 8 column units of row 0 */
+            for (int c = 0; c < (int)stride; c += 8) {
+                data->fb[c] = 0xFF;
             }
+            break;
+        case 4: /* column unit 0 of rows 0..31 */
+            for (int r = 0; r < 32; r++) {
+                data->fb[r * stride] = 0xFF;
+            }
+            break;
         }
         ssd1327_flush_rows(dev, 0, cfg->height - 1);
 
-        k_sleep(K_SECONDS(5));
-        i = (i + 1) % ARRAY_SIZE(remap_candidates);
+        k_sleep(K_SECONDS(8));
+        step = (step + 1) % 5;
     }
 }
 

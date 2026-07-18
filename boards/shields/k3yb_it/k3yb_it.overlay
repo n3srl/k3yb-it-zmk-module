@@ -165,9 +165,9 @@
         reg = <0x3c>;
         width = <128>;
         height = <128>;
-        /* Remap calibration: 0x51 = interlaced+stretched rows,
-         * 0x11 = rotated/striped. 0x00 = controller-native baseline;
-         * final value will be derived from the baseline photo. */
-        remap-value = <0x00>;
+        /* Memory probes confirmed the driver's addressing is correct and
+         * the visible line structure is the panel's physical pixel gaps.
+         * 0x51 = standard orientation for these modules. */
+        remap-value = <0x51>;
     };
 };

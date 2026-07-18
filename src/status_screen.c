@@ -13,14 +13,20 @@
  * queue, which keeps the code free of event-listener boilerplate.
  */
 
+#include <stdio.h>
+#include <string.h>
 #include <zephyr/kernel.h>
 #include <lvgl.h>
 
 #include <zmk/display.h>
 #include <zmk/keymap.h>
+#include <zmk/endpoints.h>
 
 #if IS_ENABLED(CONFIG_ZMK_BATTERY_REPORTING)
 #include <zmk/battery.h>
+#endif
+#if IS_ENABLED(CONFIG_ZMK_USB)
+#include <zmk/usb.h>
 #endif
 #if IS_ENABLED(CONFIG_ZMK_HID_INDICATORS)
 #include <zmk/hid_indicators.h>
@@ -32,7 +38,8 @@
 #define LOGO_MS 2500
 #define REFRESH_MS 500
 
-extern const lv_img_dsc_t n3_logo;
+extern const lv_img_dsc_t n3_logo;    /* 128x128 */
+extern const lv_img_dsc_t n3_logo_32; /* 128x32 */
 
 /* HID keyboard LED usage bits */
 #define IND_NUMLOCK BIT(0)
@@ -67,11 +74,20 @@ static void refresh_cb(lv_timer_t *timer) {
 
 #if IS_ENABLED(CONFIG_ZMK_HID_INDICATORS)
     {
+        /* only the ACTIVE locks, uppercase; empty when none */
         uint8_t ind = zmk_hid_indicators_get_current_profile();
         static char locks[20];
 
-        snprintf(locks, sizeof(locks), "%s %s %s", (ind & IND_NUMLOCK) ? "NUM" : "num",
-                 (ind & IND_CAPSLOCK) ? "CAPS" : "caps", (ind & IND_SCROLLLOCK) ? "SCRL" : "scrl");
+        locks[0] = '\0';
+        if (ind & IND_NUMLOCK) {
+            strcat(locks, "NUM ");
+        }
+        if (ind & IND_CAPSLOCK) {
+            strcat(locks, "CAPS ");
+        }
+        if (ind & IND_SCROLLLOCK) {
+            strcat(locks, "SCRL");
+        }
         lv_label_set_text(locks_label, locks);
     }
 #endif
@@ -81,7 +97,28 @@ static void refresh_cb(lv_timer_t *timer) {
 #endif
 
 #if IS_ENABLED(CONFIG_ZMK_BATTERY_REPORTING)
-    lv_label_set_text_fmt(batt_label, "BAT %d%%", zmk_battery_state_of_charge());
+    {
+        /* transport symbol + battery symbol (+ charge bolt) + percent */
+        uint8_t soc = zmk_battery_state_of_charge();
+        const char *bsym = (soc > 87)   ? LV_SYMBOL_BATTERY_FULL
+                           : (soc > 62) ? LV_SYMBOL_BATTERY_3
+                           : (soc > 37) ? LV_SYMBOL_BATTERY_2
+                           : (soc > 12) ? LV_SYMBOL_BATTERY_1
+                                        : LV_SYMBOL_BATTERY_EMPTY;
+        const char *tsym = (zmk_endpoints_selected().transport == ZMK_TRANSPORT_USB)
+                               ? LV_SYMBOL_USB
+                               : LV_SYMBOL_BLUETOOTH;
+        const char *charge = "";
+        static char batt[40];
+
+#if IS_ENABLED(CONFIG_ZMK_USB)
+        if (zmk_usb_is_powered()) {
+            charge = LV_SYMBOL_CHARGE;
+        }
+#endif
+        snprintf(batt, sizeof(batt), "%s %s%s %d%%", tsym, bsym, charge, soc);
+        lv_label_set_text(batt_label, batt);
+    }
 #endif
 }
 
@@ -109,32 +146,34 @@ lv_obj_t *zmk_display_status_screen(void) {
     batt_label = lv_label_create(screen);
     lv_label_set_text(batt_label, "BAT --%");
 
-    if (tall) {
-        /* 128x128: boot logo + spaced-out layout */
-        logo_label = lv_img_create(screen);
-        lv_img_set_src(logo_label, &n3_logo);
-        lv_obj_align(logo_label, LV_ALIGN_CENTER, 0, 0);
+    /* boot logo, sized per panel */
+    logo_label = lv_img_create(screen);
+    lv_img_set_src(logo_label, tall ? &n3_logo : &n3_logo_32);
+    lv_obj_align(logo_label, LV_ALIGN_CENTER, 0, 0);
 
+    if (tall) {
+        /* 128x128: spaced-out layout */
 #if IS_ENABLED(CONFIG_LV_FONT_MONTSERRAT_24)
         lv_obj_set_style_text_font(layer_label, &lv_font_montserrat_24, 0);
 #endif
         lv_obj_align(layer_label, LV_ALIGN_TOP_MID, 0, 8);
-        lv_obj_align(locks_label, LV_ALIGN_TOP_MID, 0, 48);
-        lv_obj_align(wpm_label, LV_ALIGN_TOP_MID, 0, 76);
-        lv_obj_align(batt_label, LV_ALIGN_BOTTOM_MID, 0, -4);
-
-        lv_obj_add_flag(layer_label, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(locks_label, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(wpm_label, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(batt_label, LV_OBJ_FLAG_HIDDEN);
-        lv_timer_create(logo_done_cb, LOGO_MS, NULL);
+        lv_obj_align(locks_label, LV_ALIGN_RIGHT_MID, 0, 0);
+        lv_obj_align(wpm_label, LV_ALIGN_BOTTOM_LEFT, 0, 0);
+        lv_obj_align(batt_label, LV_ALIGN_BOTTOM_RIGHT, 0, 0);
     } else {
-        /* 128x32: compact two-line layout, no logo */
+        /* 128x32: layer top-left, battery+transport top-right,
+         * active locks mid-right, WPM bottom-right */
         lv_obj_align(layer_label, LV_ALIGN_TOP_LEFT, 0, 0);
         lv_obj_align(batt_label, LV_ALIGN_TOP_RIGHT, 0, 0);
-        lv_obj_align(locks_label, LV_ALIGN_BOTTOM_LEFT, 0, 0);
+        lv_obj_align(locks_label, LV_ALIGN_RIGHT_MID, 0, 2);
         lv_obj_align(wpm_label, LV_ALIGN_BOTTOM_RIGHT, 0, 0);
     }
+
+    lv_obj_add_flag(layer_label, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(locks_label, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(wpm_label, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(batt_label, LV_OBJ_FLAG_HIDDEN);
+    lv_timer_create(logo_done_cb, LOGO_MS, NULL);
 
     lv_timer_create(refresh_cb, REFRESH_MS, NULL);
 

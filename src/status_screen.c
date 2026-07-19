@@ -20,9 +20,12 @@
 #include <zephyr/drivers/display.h>
 #include <lvgl.h>
 
+#include <zephyr/logging/log.h>
 #include <zmk/display.h>
 #include <zmk/keymap.h>
 #include <zmk/endpoints.h>
+
+LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #if IS_ENABLED(CONFIG_ZMK_BLE)
 #include <zmk/ble.h>
@@ -181,16 +184,20 @@ static void logo_paint_cb(lv_timer_t *timer) {
 }
 
 static void logo_done_cb(lv_timer_t *timer) {
+    LOG_DBG("logo_done: step 1 (clear flags)");
     lv_obj_clear_flag(layer_label, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(locks_label, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(wpm_label, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(batt_label, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(trans_label, LV_OBJ_FLAG_HIDDEN);
 
+    LOG_DBG("logo_done: step 2 (invalidate)");
     /* full redraw to wipe the raw-painted logo */
     lv_obj_invalidate(screen_root);
 
+    LOG_DBG("logo_done: step 3 (timer del)");
     lv_timer_del(timer);
+    LOG_DBG("logo_done: done");
 }
 
 lv_obj_t *zmk_display_status_screen(void) {

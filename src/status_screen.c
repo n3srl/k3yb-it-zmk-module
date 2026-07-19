@@ -17,6 +17,7 @@
 #include <string.h>
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/sensor.h>
+#include <zephyr/drivers/display.h>
 #include <lvgl.h>
 
 #include <zmk/display.h>
@@ -43,15 +44,17 @@
 #define LOGO_MS 2500
 #define REFRESH_MS 500
 
-extern const lv_img_dsc_t n3_logo;    /* 128x128 */
-extern const lv_img_dsc_t n3_logo_32; /* 128x32 */
+/* raw display-native logo bitmaps (see src/n3_logo*.c); written straight
+ * through display_write, bypassing LVGL image decoding entirely */
+extern const uint8_t n3_logo128_raw[]; /* 128x128 row-major MSB-first */
+extern const uint8_t n3_logo32_raw[];  /* 128x32 SSD1306 vtiled */
 
 /* HID keyboard LED usage bits */
 #define IND_NUMLOCK BIT(0)
 #define IND_CAPSLOCK BIT(1)
 #define IND_SCROLLLOCK BIT(2)
 
-static lv_obj_t *logo_label;
+static lv_obj_t *screen_root;
 static lv_obj_t *layer_label;
 static lv_obj_t *locks_label;
 static lv_obj_t *wpm_label;
@@ -160,14 +163,32 @@ static void refresh_cb(lv_timer_t *timer) {
 #endif
 }
 
-static void logo_done_cb(lv_timer_t *timer) {
-    lv_obj_add_flag(logo_label, LV_OBJ_FLAG_HIDDEN);
+/* paint the boot logo straight into the panel, after LVGL's first flush */
+static void logo_paint_cb(lv_timer_t *timer) {
+    const struct device *disp = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
+    const bool tall = lv_disp_get_ver_res(NULL) >= 128;
+    struct display_buffer_descriptor desc = {
+        .width = 128,
+        .height = tall ? 128 : 32,
+        .pitch = 128,
+        .buf_size = tall ? 2048 : 512,
+    };
 
+    if (device_is_ready(disp)) {
+        display_write(disp, 0, 0, &desc, tall ? n3_logo128_raw : n3_logo32_raw);
+    }
+    lv_timer_del(timer);
+}
+
+static void logo_done_cb(lv_timer_t *timer) {
     lv_obj_clear_flag(layer_label, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(locks_label, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(wpm_label, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(batt_label, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(trans_label, LV_OBJ_FLAG_HIDDEN);
+
+    /* full redraw to wipe the raw-painted logo */
+    lv_obj_invalidate(screen_root);
 
     lv_timer_del(timer);
 }
@@ -187,13 +208,7 @@ lv_obj_t *zmk_display_status_screen(void) {
     trans_label = lv_label_create(screen);
     lv_label_set_text(trans_label, "");
 
-    /* boot logo, sized per panel; ALPHA_1BIT images take their colour
-     * from the recolor style */
-    logo_label = lv_img_create(screen);
-    lv_img_set_src(logo_label, tall ? &n3_logo : &n3_logo_32);
-    lv_obj_set_style_img_recolor(logo_label, lv_color_white(), 0);
-    lv_obj_set_style_img_recolor_opa(logo_label, LV_OPA_COVER, 0);
-    lv_obj_align(logo_label, LV_ALIGN_CENTER, 0, 0);
+    screen_root = screen;
 
     /* Same scheme on both panels:
      *   top-left:  USB / BT symbols (+ charge bolt)
@@ -213,6 +228,7 @@ lv_obj_t *zmk_display_status_screen(void) {
     lv_obj_add_flag(wpm_label, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(batt_label, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(trans_label, LV_OBJ_FLAG_HIDDEN);
+    lv_timer_create(logo_paint_cb, 300, NULL);
     lv_timer_create(logo_done_cb, LOGO_MS, NULL);
 
     lv_timer_create(refresh_cb, REFRESH_MS, NULL);

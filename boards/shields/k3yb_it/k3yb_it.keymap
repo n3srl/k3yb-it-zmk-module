@@ -307,9 +307,12 @@
             &kp LEFT_SHIFT   &kp BACKSLASH &kp Z        &kp X     &kp C  &kp V  &kp B  &kp N
             &kp M            &kp COMMA     &kp DOT      &kp SLASH &kp RIGHT_SHIFT &kp UP_ARROW
             /* row 5 */
-            &kp LEFT_CONTROL &kp LEFT_WIN  &kp LEFT_ALT &kp SPACE &kp RIGHT_ARROW &lt 2 NON_US_HASH
+            &kp LEFT_CONTROL &kp LEFT_WIN  &kp LEFT_ALT &kp SPACE &kp RIGHT_ARROW &kp NON_US_HASH
             /* row 6 */
-            &kp RIGHT_ALT    &kp RIGHT_GUI &lt 3 K_APP  &kp RIGHT_CONTROL &kp LEFT_ARROW &kp DOWN_ARROW
+            /* AltGr = momentary GRAVE layer, FN = momentary ACUTE layer
+             * (pure &mo: no tap-hold, so the layer can never be "lost"
+             * while typing accented vowels) */
+            &mo 2            &mo 3         &kp K_APP    &kp RIGHT_CONTROL &kp LEFT_ARROW &kp DOWN_ARROW
             /* numpad (cols 16-19) — active directly in the default layer */
             &kp KP_NUMLOCK  &kp KP_DIVIDE   &kp KP_ASTERISK &kp KP_SUBTRACT
             &kp KP_N7       &kp KP_N8       &kp KP_N9       &kp KP_PLUS

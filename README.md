@@ -26,7 +26,7 @@ firmware variants; download them from the **Actions** tab.
 | `*_debug` | as above | + USB serial logging (CDC ACM, 115200) |
 | `k3yb_it_SSD1327_128x128_testpattern` | SSD1327 | GDDRAM probe patterns for panel bring-up |
 
-Flashing: double-tap RST→GND on the nice!nano (or hold the **ù key + ESC**
+Flashing: double-tap RST→GND on the nice!nano (or hold **AltGr + ESC**
 once this firmware is running) to enter the UF2 bootloader, then copy the
 `.uf2` onto the `NICENANO` drive.
 
@@ -181,15 +181,14 @@ Base layout is **US ASCII** (set the host OS layout to English-US).
 Accented vowels are produced with **Windows Alt+numpad codes**, so they
 need **NumLock ON** and work on Windows hosts.
 
-- Hold the **ù key** (right of the quote key, taps as `#`) + vowel →
-  **grave**: à è ì ò ù — with Shift: À È Ì Ò Ù
-- Hold the **menu key** (right of AltGr, taps as context-menu) + vowel →
-  **acute**: á é í ó ú — with Shift: Á É Í Ó Ú
+- Hold **AltGr (right Alt)** + vowel (A E I O U) → **grave**:
+  à è ì ò ù — with Shift: À È Ì Ò Ù
+- Hold **FN** + vowel → **acute**: á é í ó ú — with Shift: Á É Í Ó Ú
 - For Italian you mostly need grave (è cioè città) plus **é** (perché) from
   the acute layer.
 - Holding a vowel repeats the accent (firmware-side auto-repeat).
 
-Bootloader shortcut: hold **ù + ESC** to enter the UF2 bootloader.
+Bootloader shortcut: hold **AltGr + ESC** to enter the UF2 bootloader.
 
 ## Debugging
 

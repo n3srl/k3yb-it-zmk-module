@@ -187,9 +187,12 @@ lv_obj_t *zmk_display_status_screen(void) {
     trans_label = lv_label_create(screen);
     lv_label_set_text(trans_label, "");
 
-    /* boot logo, sized per panel */
+    /* boot logo, sized per panel; ALPHA_1BIT images take their colour
+     * from the recolor style */
     logo_label = lv_img_create(screen);
     lv_img_set_src(logo_label, tall ? &n3_logo : &n3_logo_32);
+    lv_obj_set_style_img_recolor(logo_label, lv_color_white(), 0);
+    lv_obj_set_style_img_recolor_opa(logo_label, LV_OPA_COVER, 0);
     lv_obj_align(logo_label, LV_ALIGN_CENTER, 0, 0);
 
     /* Same scheme on both panels:

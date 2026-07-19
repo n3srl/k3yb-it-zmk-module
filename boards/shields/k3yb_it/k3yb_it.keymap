@@ -244,6 +244,19 @@
             bindings = <&m_u_ac>, <&m_u_ac_up>;
             mods = <(MOD_LSFT|MOD_RSFT)>;
         };
+
+        /* auto-repeat wrappers: holding an accent key re-fires the macro
+         * like OS key repeat (macros cannot be host-repeated) */
+        rp_a_gr: rp_a_gr { compatible = "k3yb,behavior-repeat"; #binding-cells = <0>; bindings = <&mm_a_gr>; };
+        rp_e_gr: rp_e_gr { compatible = "k3yb,behavior-repeat"; #binding-cells = <0>; bindings = <&mm_e_gr>; };
+        rp_i_gr: rp_i_gr { compatible = "k3yb,behavior-repeat"; #binding-cells = <0>; bindings = <&mm_i_gr>; };
+        rp_o_gr: rp_o_gr { compatible = "k3yb,behavior-repeat"; #binding-cells = <0>; bindings = <&mm_o_gr>; };
+        rp_u_gr: rp_u_gr { compatible = "k3yb,behavior-repeat"; #binding-cells = <0>; bindings = <&mm_u_gr>; };
+        rp_a_ac: rp_a_ac { compatible = "k3yb,behavior-repeat"; #binding-cells = <0>; bindings = <&mm_a_ac>; };
+        rp_e_ac: rp_e_ac { compatible = "k3yb,behavior-repeat"; #binding-cells = <0>; bindings = <&mm_e_ac>; };
+        rp_i_ac: rp_i_ac { compatible = "k3yb,behavior-repeat"; #binding-cells = <0>; bindings = <&mm_i_ac>; };
+        rp_o_ac: rp_o_ac { compatible = "k3yb,behavior-repeat"; #binding-cells = <0>; bindings = <&mm_o_ac>; };
+        rp_u_ac: rp_u_ac { compatible = "k3yb,behavior-repeat"; #binding-cells = <0>; bindings = <&mm_u_ac>; };
     };
 
     /* ==================================================================
@@ -373,10 +386,10 @@
             &trans &trans &trans &trans &trans &trans &trans &trans
             &trans &trans &trans &trans &trans &trans
             /* row 2 â€” TAB Q W [E] R T Y [U] [I] [O] P [ ] INS HOM PGU */
-            &trans &trans &trans &mm_e_gr &trans &trans &trans &mm_u_gr
-            &mm_i_gr &mm_o_gr &trans &trans &trans &trans &trans &trans
+            &trans &trans &trans &rp_e_gr &trans &trans &trans &rp_u_gr
+            &rp_i_gr &rp_o_gr &trans &trans &trans &trans &trans &trans
             /* row 3 â€” CAP [A] S D F G H J K L ; ' ENT DEL END PGD */
-            &trans &mm_a_gr &trans &trans &trans &trans &trans &trans
+            &trans &rp_a_gr &trans &trans &trans &trans &trans &trans
             &trans &trans &trans &trans &trans &trans &trans &trans
             /* row 4 â€” shift row, all transparent */
             &trans &trans &trans &trans &trans &trans &trans &trans
@@ -405,10 +418,10 @@
             &trans &trans &trans &trans &trans &trans &trans &trans
             &trans &trans &trans &trans &trans &trans
             /* row 2 â€” TAB Q W [E] R T Y [U] [I] [O] P [ ] INS HOM PGU */
-            &trans &trans &trans &mm_e_ac &trans &trans &trans &mm_u_ac
-            &mm_i_ac &mm_o_ac &trans &trans &trans &trans &trans &trans
+            &trans &trans &trans &rp_e_ac &trans &trans &trans &rp_u_ac
+            &rp_i_ac &rp_o_ac &trans &trans &trans &trans &trans &trans
             /* row 3 â€” CAP [A] S D F G H J K L ; ' ENT DEL END PGD */
-            &trans &mm_a_ac &trans &trans &trans &trans &trans &trans
+            &trans &rp_a_ac &trans &trans &trans &trans &trans &trans
             &trans &trans &trans &trans &trans &trans &trans &trans
             /* row 4 */
             &trans &trans &trans &trans &trans &trans &trans &trans

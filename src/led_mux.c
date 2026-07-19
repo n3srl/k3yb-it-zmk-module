@@ -28,17 +28,30 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define LED_MUX_NODE DT_INST(0, k3yb_led_mux)
 
 #define STEP_MS 1
-#define STATE_REFRESH_MS 100
+#define STATE_REFRESH_MS 40
 
 #define IND_NUMLOCK BIT(0)
 #define IND_CAPSLOCK BIT(1)
 #define IND_SCROLLLOCK BIT(2)
 
+#define FLAME_MODE DT_PROP(LED_MUX_NODE, flame_mode)
+#define FLAME_MIN 90 /* lowest flame brightness, 0-255 */
+
 static const struct gpio_dt_spec sel_a = GPIO_DT_SPEC_GET(LED_MUX_NODE, a_gpios);
 static const struct gpio_dt_spec sel_b = GPIO_DT_SPEC_GET(LED_MUX_NODE, b_gpios);
 static const struct gpio_dt_spec inh = GPIO_DT_SPEC_GET(LED_MUX_NODE, inh_gpios);
 
-static volatile uint8_t led_states; /* bit n = LED Yn on */
+static volatile uint8_t led_states;          /* bit n = LED Yn on */
+static volatile uint8_t led_level[4];        /* per-LED brightness 0-255 (flame) */
+static int16_t flame_countdown[4];           /* ms until this LED picks a new level */
+
+/* tiny LCG, ISR-safe */
+static inline uint8_t prand(void) {
+    static uint32_t seed = 0x2a651b7d;
+
+    seed = seed * 1664525u + 1013904223u;
+    return seed >> 24;
+}
 
 static void led_mux_tick(struct k_timer *timer) {
     static uint8_t idx;
@@ -46,12 +59,16 @@ static void led_mux_tick(struct k_timer *timer) {
     ARG_UNUSED(timer);
     idx = (idx + 1) & 0x3;
 
-    /* blank while switching the selects, then gate on if this LED is lit */
+    /* blank while switching the selects, then gate on if this LED is lit.
+     * In flame mode the slot is lit with probability level/256, which
+     * time-averages into a flickering brightness. */
     gpio_pin_set_dt(&inh, 0);
     gpio_pin_set_dt(&sel_a, idx & 0x1);
     gpio_pin_set_dt(&sel_b, (idx >> 1) & 0x1);
     if (led_states & BIT(idx)) {
-        gpio_pin_set_dt(&inh, 1); /* logical 1 = enabled (inh is active-low wired) */
+        if (!FLAME_MODE || prand() < led_level[idx]) {
+            gpio_pin_set_dt(&inh, 1); /* logical 1 = enabled (inh is active-low wired) */
+        }
     }
 }
 
@@ -86,6 +103,19 @@ static void led_mux_refresh(struct k_work *work) {
     }
 
     led_states = states;
+
+    /* flame effect: every LED wanders its own brightness on its own
+     * cadence, so the four flames flicker out of sync */
+    if (FLAME_MODE) {
+        for (int i = 0; i < 4; i++) {
+            flame_countdown[i] -= STATE_REFRESH_MS;
+            if (flame_countdown[i] <= 0) {
+                led_level[i] = FLAME_MIN + (prand() % (256 - FLAME_MIN));
+                flame_countdown[i] = 50 + (prand() % 180); /* 50-230 ms */
+            }
+        }
+    }
+
     k_work_schedule(&led_mux_refresh_work, K_MSEC(STATE_REFRESH_MS));
 }
 

@@ -10,6 +10,11 @@ config K3YB_LED_MUX
     depends on DT_HAS_K3YB_LED_MUX_ENABLED
     select GPIO
 
+config K3YB_BEHAVIOR_REPEAT
+    bool "k3yb auto-repeat wrapper behavior"
+    default y
+    depends on DT_HAS_K3YB_BEHAVIOR_REPEAT_ENABLED
+
 config K3YB_SSD1327
     bool "k3yb SSD1327 grayscale OLED driver (mono over I2C)"
     default y

@@ -70,6 +70,7 @@
         a-gpios = <&pro_micro 1 GPIO_ACTIVE_HIGH>;    /* A   = LED_MUX 1 = D1 */
         b-gpios = <&pro_micro 0 GPIO_ACTIVE_HIGH>;    /* B   = LED_MUX 2 = D0 */
         inh-gpios = <&pro_micro 9 GPIO_ACTIVE_LOW>;   /* Inh = LED_OUTPUT = D9, low = enabled */
+        flame-mode;                                   /* candle-like flicker, per-LED cadence */
     };
 
     demux_transform: matrix_transform {

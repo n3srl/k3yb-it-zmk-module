@@ -1,0 +1,23 @@
+# Copyright (c) 2026 k3yb.it
+# SPDX-License-Identifier: MIT
+
+description: |
+  Auto-repeats the wrapped behavior while the key is held (initial
+  delay, then repeat rate), like OS key repeat but firmware side.
+  Needed for macro-based keys (e.g. accent macros) that the host
+  cannot auto-repeat.
+
+compatible: "k3yb,behavior-repeat"
+
+include: zero_param.yaml
+
+properties:
+  bindings:
+    type: phandles
+    required: true
+  delay-ms:
+    type: int
+    default: 400
+  rate-ms:
+    type: int
+    default: 80

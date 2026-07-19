@@ -22,3 +22,8 @@ properties:
     type: phandle-array
     required: true
     description: Inhibit pin (drive to inactive level to light the selected LED)
+  flame-mode:
+    type: boolean
+    description: |
+      Active LEDs flicker like small flames, each on its own random
+      cadence, instead of being steady.

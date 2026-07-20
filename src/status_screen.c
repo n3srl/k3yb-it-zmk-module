@@ -135,7 +135,7 @@ static void refresh_cb(lv_timer_t *timer) {
 #endif
 #if IS_ENABLED(CONFIG_ZMK_USB)
         if (zmk_usb_is_powered()) {
-            strcat(trans, "*");
+            strcat(trans, "CH");
         }
 #endif
         lv_label_set_text(trans_label, trans);

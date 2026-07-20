@@ -151,7 +151,7 @@ static void refresh_cb(lv_timer_t *timer) {
         static char batt[40];
         int mv = -1;
 
-#if DT_HAS_CHOSEN(zmk_battery)
+#if DT_HAS_CHOSEN(zmk_battery) && !IS_ENABLED(CONFIG_K3YB_STATUS_NO_VOLTAGE)
         {
             static const struct device *batt_dev = DEVICE_DT_GET(DT_CHOSEN(zmk_battery));
             struct sensor_value val;

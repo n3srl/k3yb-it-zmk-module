@@ -19,6 +19,10 @@ config K3YB_STATUS_MINIMAL
     bool "bisect: minimal plain-text status refresh"
     default n
 
+config K3YB_STATUS_NO_VOLTAGE
+    bool "bisect: full status UI without the voltage sensor read"
+    default n
+
 config K3YB_SSD1327
     bool "k3yb SSD1327 grayscale OLED driver (mono over I2C)"
     default y

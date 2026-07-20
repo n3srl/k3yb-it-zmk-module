@@ -1,0 +1,28 @@
+# Copyright (c) 2026 k3yb.it
+# SPDX-License-Identifier: MIT
+
+description: SH1107 monochrome OLED over I2C (custom k3yb driver)
+
+compatible: "k3yb,sh1107"
+
+include: i2c-device.yaml
+
+properties:
+  width:
+    type: int
+    default: 128
+  height:
+    type: int
+    default: 128
+  segment-remap:
+    type: boolean
+    description: Mirror horizontally (0xA1)
+  com-invdir:
+    type: boolean
+    description: Mirror vertically (0xC8)
+  display-offset:
+    type: int
+    default: 0
+  internal-dcdc:
+    type: boolean
+    description: Use the internal charge pump (module has no external boost)

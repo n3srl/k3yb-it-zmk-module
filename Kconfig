@@ -30,6 +30,23 @@ config K3YB_SSD1327
     depends on DISPLAY
     select I2C
 
+config K3YB_SH1107
+    bool "k3yb SH1107 mono OLED driver (I2C)"
+    default y
+    depends on DT_HAS_K3YB_SH1107_ENABLED
+    depends on DISPLAY
+    select I2C
+
+if K3YB_SH1107
+
+config K3YB_SH1107_FB_SIZE
+    int
+    default 2048
+    help
+      Shadow framebuffer size in bytes (width/8 * height).
+
+endif # K3YB_SH1107
+
 if K3YB_SSD1327
 
 config K3YB_SSD1327_FB_SIZE

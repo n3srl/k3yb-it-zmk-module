@@ -1,4 +1,5 @@
-if(CONFIG_K3YB_SSD1327)
+if(CONFIG_K3YB_SSD1327 OR CONFIG_K3YB_SH1107)
   zephyr_library()
-  zephyr_library_sources(ssd1327.c)
+  zephyr_library_sources_ifdef(CONFIG_K3YB_SSD1327 ssd1327.c)
+  zephyr_library_sources_ifdef(CONFIG_K3YB_SH1107 sh1107.c)
 endif()

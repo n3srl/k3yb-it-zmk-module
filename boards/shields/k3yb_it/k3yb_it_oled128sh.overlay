@@ -1,0 +1,20 @@
+/* k3yb.it with SH1107 128x128 mono OLED (1.5" GME128128-01-IIC, 4-pin I2C)
+ * NOTE: this module's pin order is SDA SCL GND VCC (different from the
+ * SSD1306 0.91" module!) */
+#include "k3yb_it.dtsi"
+
+/ {
+    chosen {
+        zephyr,display = &oled;
+    };
+};
+
+&i2c0 {
+    oled: sh1107@3c {
+        compatible = "k3yb,sh1107";
+        reg = <0x3c>;
+        width = <128>;
+        height = <128>;
+        /* GME128128 has an on-board boost converter -> external VPP */
+    };
+};

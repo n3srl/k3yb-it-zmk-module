@@ -137,13 +137,13 @@ static void ssd1327_get_capabilities(const struct device *dev, struct display_ca
     memset(caps, 0, sizeof(*caps));
     caps->x_resolution = cfg->width;
     caps->y_resolution = cfg->height;
-    caps->supported_pixel_formats = PIXEL_FORMAT_MONO10;
-    caps->current_pixel_format = PIXEL_FORMAT_MONO10;
+    caps->supported_pixel_formats = PIXEL_FORMAT_MONO01;
+    caps->current_pixel_format = PIXEL_FORMAT_MONO01;
     caps->screen_info = SCREEN_INFO_MONO_MSB_FIRST;
 }
 
 static int ssd1327_set_pixel_format(const struct device *dev, const enum display_pixel_format pf) {
-    if (pf == PIXEL_FORMAT_MONO10) {
+    if (pf == PIXEL_FORMAT_MONO01) {
         return 0;
     }
     return -ENOTSUP;

@@ -143,13 +143,13 @@ static void sh1107_get_capabilities(const struct device *dev, struct display_cap
     memset(caps, 0, sizeof(*caps));
     caps->x_resolution = cfg->width;
     caps->y_resolution = cfg->height;
-    caps->supported_pixel_formats = PIXEL_FORMAT_MONO10;
-    caps->current_pixel_format = PIXEL_FORMAT_MONO10;
+    caps->supported_pixel_formats = PIXEL_FORMAT_MONO01;
+    caps->current_pixel_format = PIXEL_FORMAT_MONO01;
     caps->screen_info = SCREEN_INFO_MONO_MSB_FIRST;
 }
 
 static int sh1107_set_pixel_format(const struct device *dev, const enum display_pixel_format pf) {
-    return (pf == PIXEL_FORMAT_MONO10) ? 0 : -ENOTSUP;
+    return (pf == PIXEL_FORMAT_MONO01) ? 0 : -ENOTSUP;
 }
 
 static int sh1107_set_contrast(const struct device *dev, const uint8_t contrast) {

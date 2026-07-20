@@ -82,13 +82,6 @@ static const char *layer_display_name(uint8_t idx) {
 static void refresh_cb(lv_timer_t *timer) {
     ARG_UNUSED(timer);
 
-    LOG_DBG("ui tick");
-#if IS_ENABLED(CONFIG_K3YB_STATUS_MINIMAL)
-    /* bisect mode: plain-text only, no symbols, no sensors */
-    lv_label_set_text(layer_label, layer_display_name(zmk_keymap_highest_layer_active()));
-    lv_label_set_text_fmt(batt_label, "B %d", zmk_battery_state_of_charge());
-    return;
-#endif
     lv_label_set_text(layer_label, layer_display_name(zmk_keymap_highest_layer_active()));
 
 #if IS_ENABLED(CONFIG_ZMK_HID_INDICATORS)
@@ -149,7 +142,7 @@ static void refresh_cb(lv_timer_t *timer) {
         static char batt[40];
         int mv = -1;
 
-#if DT_HAS_CHOSEN(zmk_battery) && !IS_ENABLED(CONFIG_K3YB_STATUS_NO_VOLTAGE)
+#if DT_HAS_CHOSEN(zmk_battery)
         {
             static const struct device *batt_dev = DEVICE_DT_GET(DT_CHOSEN(zmk_battery));
             struct sensor_value val;
@@ -198,7 +191,6 @@ static void logo_paint_cb(lv_timer_t *timer) {
 }
 
 static void logo_done_cb(lv_timer_t *timer) {
-    LOG_DBG("logo_done: step 1 (clear flags)");
     lv_obj_clear_flag(layer_label, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(locks_label, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(wpm_label, LV_OBJ_FLAG_HIDDEN);
@@ -209,7 +201,6 @@ static void logo_done_cb(lv_timer_t *timer) {
      * the full redraw kills the display thread even with a 4k stack.
      * The un-hidden labels invalidate their own areas; leftover logo
      * pixels get wiped by a raw clear instead. */
-    LOG_DBG("logo_done: step 2 (raw clear)");
     {
         const struct device *disp = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
         const bool tall = lv_disp_get_ver_res(NULL) >= 128;
@@ -226,9 +217,7 @@ static void logo_done_cb(lv_timer_t *timer) {
         }
     }
 
-    LOG_DBG("logo_done: step 3 (timer del)");
     lv_timer_del(timer);
-    LOG_DBG("logo_done: done");
 }
 
 lv_obj_t *zmk_display_status_screen(void) {

@@ -116,24 +116,26 @@ static void refresh_cb(lv_timer_t *timer) {
 #endif
 
     /* transports, top-left: USB and BT can show at the same time,
-     * charge bolt right after when powered */
+     * charge marker right after when powered.
+     * NOTE: plain text on purpose - rendering LV_SYMBOL_* glyphs
+     * crashes the display thread on this setup. */
     {
         static char trans[24];
 
         trans[0] = '\0';
 #if IS_ENABLED(CONFIG_ZMK_USB)
         if (zmk_usb_is_powered()) {
-            strcat(trans, LV_SYMBOL_USB " ");
+            strcat(trans, "USB ");
         }
 #endif
 #if IS_ENABLED(CONFIG_ZMK_BLE)
         if (zmk_ble_active_profile_is_connected()) {
-            strcat(trans, LV_SYMBOL_BLUETOOTH " ");
+            strcat(trans, "BT ");
         }
 #endif
 #if IS_ENABLED(CONFIG_ZMK_USB)
         if (zmk_usb_is_powered()) {
-            strcat(trans, LV_SYMBOL_CHARGE);
+            strcat(trans, "*");
         }
 #endif
         lv_label_set_text(trans_label, trans);
@@ -141,13 +143,9 @@ static void refresh_cb(lv_timer_t *timer) {
 
 #if IS_ENABLED(CONFIG_ZMK_BATTERY_REPORTING)
     {
-        /* battery symbol + percent + voltage, top-right */
+        /* battery percent + voltage, top-right (text only) */
         uint8_t soc = zmk_battery_state_of_charge();
-        const char *bsym = (soc > 87)   ? LV_SYMBOL_BATTERY_FULL
-                           : (soc > 62) ? LV_SYMBOL_BATTERY_3
-                           : (soc > 37) ? LV_SYMBOL_BATTERY_2
-                           : (soc > 12) ? LV_SYMBOL_BATTERY_1
-                                        : LV_SYMBOL_BATTERY_EMPTY;
+        const char *bsym = "";
         static char batt[40];
         int mv = -1;
 
@@ -163,10 +161,10 @@ static void refresh_cb(lv_timer_t *timer) {
         }
 #endif
         if (mv > 0) {
-            snprintf(batt, sizeof(batt), "%s %d%% %d.%02dV", bsym, soc, mv / 1000,
+            snprintf(batt, sizeof(batt), "%s%d%% %d.%02dV", bsym, soc, mv / 1000,
                      (mv % 1000) / 10);
         } else {
-            snprintf(batt, sizeof(batt), "%s %d%%", bsym, soc);
+            snprintf(batt, sizeof(batt), "%s%d%%", bsym, soc);
         }
         lv_label_set_text(batt_label, batt);
     }

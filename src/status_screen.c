@@ -105,7 +105,7 @@ static void refresh_cb(lv_timer_t *timer) {
 #endif
 
 #if IS_ENABLED(CONFIG_ZMK_WPM)
-    lv_label_set_text_fmt(wpm_label, "W%d", zmk_wpm_get_state());
+    lv_label_set_text_fmt(wpm_label, "WPM %d", zmk_wpm_get_state());
 #endif
 
     /* transports, top-left: USB and BT can show at the same time,
@@ -256,8 +256,8 @@ lv_obj_t *zmk_display_status_screen(void) {
         lv_obj_set_pos(trans_label, 0, 0);
         lv_obj_set_pos(batt_label, 48, 0);
         lv_obj_set_pos(layer_label, 0, 18);
-        lv_obj_set_pos(locks_label, 48, 18);
-        lv_obj_set_pos(wpm_label, 100, 18);
+        lv_obj_set_pos(locks_label, 44, 18);
+        lv_obj_set_pos(wpm_label, 86, 18);
     }
 
     lv_obj_add_flag(layer_label, LV_OBJ_FLAG_HIDDEN);

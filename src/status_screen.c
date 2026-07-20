@@ -117,6 +117,10 @@ static void icons_paint(void) {
     };
     int x = 2;
 
+    /* the 128x32 SSD1306 takes vtiled buffers (8 vertical px per byte,
+     * LSB = top), unlike the k3yb 128x128 drivers which take row-major */
+    static uint8_t icon_vtiled[16 * 16];
+
     if (!icons_ready || !device_is_ready(disp)) {
         return;
     }
@@ -170,7 +174,19 @@ static void icons_paint(void) {
     }
 #endif
 
-    display_write(disp, 0, tall ? 2 : 0, &desc, icon_row);
+    if (tall) {
+        display_write(disp, 0, 2, &desc, icon_row);
+    } else {
+        memset(icon_vtiled, 0, sizeof(icon_vtiled));
+        for (int x = 0; x < 128; x++) {
+            for (int y = 0; y < 16; y++) {
+                if (icon_row[y * 16 + x / 8] & (0x80 >> (x % 8))) {
+                    icon_vtiled[(y / 8) * 128 + x] |= 1 << (y % 8);
+                }
+            }
+        }
+        display_write(disp, 0, 0, &desc, icon_vtiled);
+    }
 }
 
 #endif /* CONFIG_K3YB_STATUS_ICONS */

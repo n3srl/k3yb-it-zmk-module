@@ -93,16 +93,12 @@ static void refresh_cb(lv_timer_t *timer) {
         uint8_t ind = zmk_hid_indicators_get_current_profile();
         static char locks[20];
 
+        /* inactive locks become blanks so the row keeps its full width
+         * and the remaining indicators don't shift around */
         locks[0] = '\0';
-        if (ind & IND_NUMLOCK) {
-            strcat(locks, "NUM ");
-        }
-        if (ind & IND_CAPSLOCK) {
-            strcat(locks, "CAPS ");
-        }
-        if (ind & IND_SCROLLLOCK) {
-            strcat(locks, "SCRL");
-        }
+        strcat(locks, (ind & IND_NUMLOCK) ? "NUM " : "        ");
+        strcat(locks, (ind & IND_CAPSLOCK) ? "CAPS " : "         ");
+        strcat(locks, (ind & IND_SCROLLLOCK) ? "SCRL" : "        ");
         lv_label_set_text(locks_label, locks);
     }
 #endif

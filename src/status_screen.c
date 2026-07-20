@@ -160,7 +160,16 @@ static void refresh_cb(lv_timer_t *timer) {
             }
         }
 #endif
-        if (mv > 0) {
+        bool no_batt = false;
+
+#if IS_ENABLED(CONFIG_ZMK_USB)
+        /* a real LiPo never exceeds ~4.2V; USB-powered with >4.3V on the
+         * rail means the charger sees no battery */
+        no_batt = zmk_usb_is_powered() && mv > 4300;
+#endif
+        if (no_batt) {
+            snprintf(batt, sizeof(batt), "NO BATT");
+        } else if (mv > 0) {
             snprintf(batt, sizeof(batt), "%s%d%% %d.%02dV", bsym, soc, mv / 1000,
                      (mv % 1000) / 10);
         } else {

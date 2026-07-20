@@ -112,7 +112,7 @@ static void refresh_cb(lv_timer_t *timer) {
 #endif
 
 #if IS_ENABLED(CONFIG_ZMK_WPM)
-    lv_label_set_text_fmt(wpm_label, "WPM %d", zmk_wpm_get_state());
+    lv_label_set_text_fmt(wpm_label, "W%d", zmk_wpm_get_state());
 #endif
 
     /* transports, top-left: USB and BT can show at the same time,
@@ -239,18 +239,25 @@ lv_obj_t *zmk_display_status_screen(void) {
 
     screen_root = screen;
 
-    /* Same scheme on both panels:
-     *   top-left:  USB / BT symbols (+ charge bolt)
-     *   top-right: battery symbol + percent + voltage
-     *   mid-right: active locks (uppercase, empty when none)
-     *   bottom-left:  active layer
-     *   bottom-right: WPM
-     */
-    lv_obj_align(trans_label, LV_ALIGN_TOP_LEFT, 0, 0);
-    lv_obj_align(batt_label, LV_ALIGN_TOP_RIGHT, 0, 0);
-    lv_obj_align(locks_label, LV_ALIGN_RIGHT_MID, 0, tall ? 0 : 2);
-    lv_obj_align(layer_label, LV_ALIGN_BOTTOM_LEFT, 0, 0);
-    lv_obj_align(wpm_label, LV_ALIGN_BOTTOM_RIGHT, 0, 0);
+    /* FIXED grid positions - no edge alignment.  Right/bottom-aligned
+     * labels whose text changes each refresh sent LVGL's layout pass
+     * into an endless loop, hanging the display thread on the first
+     * render (the "only BASE shows" bug). */
+    if (tall) {
+        /* 128x128 */
+        lv_obj_set_pos(trans_label, 2, 2);
+        lv_obj_set_pos(batt_label, 2, 22);
+        lv_obj_set_pos(locks_label, 2, 44);
+        lv_obj_set_pos(layer_label, 2, 66);  /* montserrat 24 */
+        lv_obj_set_pos(wpm_label, 2, 104);
+    } else {
+        /* 128x32: two rows, left-anchored columns */
+        lv_obj_set_pos(trans_label, 0, 0);
+        lv_obj_set_pos(batt_label, 48, 0);
+        lv_obj_set_pos(layer_label, 0, 18);
+        lv_obj_set_pos(locks_label, 48, 18);
+        lv_obj_set_pos(wpm_label, 100, 18);
+    }
 
     lv_obj_add_flag(layer_label, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(locks_label, LV_OBJ_FLAG_HIDDEN);

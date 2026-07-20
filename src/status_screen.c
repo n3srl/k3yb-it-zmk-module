@@ -83,6 +83,12 @@ static void refresh_cb(lv_timer_t *timer) {
     ARG_UNUSED(timer);
 
     LOG_DBG("ui tick");
+#if IS_ENABLED(CONFIG_K3YB_STATUS_MINIMAL)
+    /* bisect mode: plain-text only, no symbols, no sensors */
+    lv_label_set_text(layer_label, layer_display_name(zmk_keymap_highest_layer_active()));
+    lv_label_set_text_fmt(batt_label, "B %d", zmk_battery_state_of_charge());
+    return;
+#endif
     lv_label_set_text(layer_label, layer_display_name(zmk_keymap_highest_layer_active()));
 
 #if IS_ENABLED(CONFIG_ZMK_HID_INDICATORS)

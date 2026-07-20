@@ -26,7 +26,12 @@ include:
     snippet: zmk-usb-logging
     cmake-args: -DCONFIG_ZMK_DISPLAY=n -DCONFIG_DISPLAY=y -DCONFIG_K3YB_SSD1327_TEST_PATTERN=y
     artifact-name: k3yb_it_SSD1327_128x128_testpattern
-  # serial-logging bisect variants (temporary)
+  # bisect variants (temporary)
+  - board: nice_nano_v2
+    shield: k3yb_it_oled32
+    snippet: zmk-usb-logging
+    cmake-args: -DCONFIG_K3YB_STATUS_MINIMAL=y
+    artifact-name: bisect_32_debug_minimal_ui
   - board: nice_nano_v2
     shield: k3yb_it_oled32
     snippet: zmk-usb-logging

@@ -23,6 +23,7 @@ firmware variants; download them from the **Actions** tab.
 | `k3yb_it` | none | base variant |
 | `k3yb_it_SSD1306_128x32` | 0.91" SSD1306 128×32 I2C | compact status layout |
 | `k3yb_it_SSD1327_128x128` | 1.5" SSD1327 128×128 I2C | full status layout |
+| `k3yb_it_SH1107_128x128` | 1.5" SH1107 128×128 I2C (GME128128-01) | full status layout; note: pin order SDA SCL GND VCC |
 | `*_debug` | as above | + USB serial logging (CDC ACM, 115200) |
 | `k3yb_it_SSD1327_128x128_testpattern` | SSD1327 | GDDRAM probe patterns for panel bring-up |
 
@@ -165,15 +166,23 @@ because the accent keys are macros: the host cannot auto-repeat a macro.
 
 Shared by both display variants, layout adapts at runtime:
 
-- boot: **N3 logo** (from `boards/shields/k3yb_it/logo/*.png`, converted
-  to LVGL `ALPHA_1BIT` C arrays in `src/n3_logo*.c`) for 2.5 s
-- top-left: transport symbols — USB and Bluetooth shown simultaneously
-  when both active, charge bolt when USB-powered
-- top-right: battery symbol + percent + pack voltage (from the
-  `zmk,battery` sensor)
-- mid-right: **active** locks only, uppercase (`NUM CAPS SCRL`)
-- bottom-left: active layer (`BASE` / `PAD` / `GRAVE` / `ACUTO`)
-- bottom-right: words per minute
+- boot: **N3 logo** (from `boards/shields/k3yb_it/logo/*.png`), painted
+  raw through `display_write` in each panel's native format — LVGL image
+  decoding rendered garbage on this pipeline
+- transports: `USB` and `BT` shown simultaneously when both active,
+  `CH` appended while charging
+- battery: percent + pack voltage from the `zmk,battery` sensor, or
+  `NO BATT` when USB-powered with the rail above 4.3 V (a real LiPo
+  never exceeds ~4.2 V)
+- **active** locks only, uppercase (`NUM CAPS SCRL`); active layer;
+  words per minute (`W42`)
+
+Two hard-won implementation notes: (1) labels sit on a **fixed grid** —
+right/bottom edge alignment with per-refresh text changes hangs LVGL's
+layout pass forever (display thread stuck, "only BASE shows");
+(2) widgets are plain text — rendering `LV_SYMBOL_*` glyphs kills the
+display thread on this setup. The dedicated display thread needs an
+8 KiB stack for full-screen redraws.
 
 ## Layout and Italian accents
 

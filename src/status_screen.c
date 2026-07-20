@@ -82,6 +82,7 @@ static const char *layer_display_name(uint8_t idx) {
 static void refresh_cb(lv_timer_t *timer) {
     ARG_UNUSED(timer);
 
+    LOG_DBG("ui tick");
     lv_label_set_text(layer_label, layer_display_name(zmk_keymap_highest_layer_active()));
 
 #if IS_ENABLED(CONFIG_ZMK_HID_INDICATORS)
@@ -191,9 +192,26 @@ static void logo_done_cb(lv_timer_t *timer) {
     lv_obj_clear_flag(batt_label, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(trans_label, LV_OBJ_FLAG_HIDDEN);
 
-    LOG_DBG("logo_done: step 2 (invalidate)");
-    /* full redraw to wipe the raw-painted logo */
-    lv_obj_invalidate(screen_root);
+    /* NOTE: full-screen lv_obj_invalidate(screen_root) removed for now -
+     * the full redraw kills the display thread even with a 4k stack.
+     * The un-hidden labels invalidate their own areas; leftover logo
+     * pixels get wiped by a raw clear instead. */
+    LOG_DBG("logo_done: step 2 (raw clear)");
+    {
+        const struct device *disp = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
+        const bool tall = lv_disp_get_ver_res(NULL) >= 128;
+        static const uint8_t zeros[2048];
+        struct display_buffer_descriptor desc = {
+            .width = 128,
+            .height = tall ? 128 : 32,
+            .pitch = 128,
+            .buf_size = tall ? 2048 : 512,
+        };
+
+        if (device_is_ready(disp)) {
+            display_write(disp, 0, 0, &desc, zeros);
+        }
+    }
 
     LOG_DBG("logo_done: step 3 (timer del)");
     lv_timer_del(timer);

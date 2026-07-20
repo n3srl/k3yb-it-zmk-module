@@ -259,9 +259,17 @@ lv_obj_t *zmk_display_status_screen(void) {
         /* icons variant: everything on the top row - transport glyphs on
          * the left, single battery glyph near the right edge.  FIXED x,
          * not right-alignment: the glyph has constant width so a fixed
-         * position is safe (edge alignment hangs the layout pass). */
+         * position is safe (edge alignment hangs the layout pass).
+         * The default (unscii) font has no LV_SYMBOL glyphs - the icon
+         * labels need a Montserrat font, which embeds FontAwesome. */
+#if IS_ENABLED(CONFIG_K3YB_STATUS_ICONS)
+        const lv_font_t *icon_font = tall ? &lv_font_montserrat_24 : &lv_font_montserrat_14;
+
+        lv_obj_set_style_text_font(trans_label, icon_font, 0);
+        lv_obj_set_style_text_font(batt_label, icon_font, 0);
+#endif
         lv_obj_set_pos(trans_label, tall ? 2 : 0, tall ? 2 : 0);
-        lv_obj_set_pos(batt_label, 110, tall ? 2 : 0);
+        lv_obj_set_pos(batt_label, tall ? 100 : 110, tall ? 2 : 0);
         if (tall) {
             lv_obj_set_pos(locks_label, 2, 44);
             lv_obj_set_pos(layer_label, 2, 66); /* montserrat 24 */

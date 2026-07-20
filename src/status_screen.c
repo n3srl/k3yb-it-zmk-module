@@ -91,7 +91,7 @@ static void refresh_cb(lv_timer_t *timer) {
     {
         /* only the ACTIVE locks, uppercase; empty when none */
         uint8_t ind = zmk_hid_indicators_get_current_profile();
-        static char locks[20];
+        static char locks[32]; /* 3 padded slots: up to 26 bytes incl. NUL */
 
         /* inactive locks become blanks so the row keeps its full width
          * and the remaining indicators don't shift around */

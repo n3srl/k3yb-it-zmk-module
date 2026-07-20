@@ -47,6 +47,9 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define LOGO_MS 2500
 #define REFRESH_MS 500
 
+/* icon-mode variant: LV_SYMBOL_* glyphs instead of text markers */
+#define ICONS IS_ENABLED(CONFIG_K3YB_STATUS_ICONS)
+
 /* raw display-native logo bitmaps (see src/n3_logo*.c); written straight
  * through display_write, bypassing LVGL image decoding entirely */
 extern const uint8_t n3_logo128_raw[]; /* 128x128 row-major MSB-first */
@@ -110,25 +113,27 @@ static void refresh_cb(lv_timer_t *timer) {
 
     /* transports, top-left: USB and BT can show at the same time,
      * charge marker right after when powered.
-     * NOTE: plain text on purpose - rendering LV_SYMBOL_* glyphs
-     * crashes the display thread on this setup. */
+     * Text markers by default; LV_SYMBOL_* glyphs behind
+     * CONFIG_K3YB_STATUS_ICONS (glyph rendering crashed the display
+     * thread before the stack/layout fixes - icons are a separate
+     * firmware variant until proven stable). */
     {
         static char trans[24];
 
         trans[0] = '\0';
 #if IS_ENABLED(CONFIG_ZMK_USB)
         if (zmk_usb_is_powered()) {
-            strcat(trans, "USB ");
+            strcat(trans, ICONS ? LV_SYMBOL_USB " " : "USB ");
         }
 #endif
 #if IS_ENABLED(CONFIG_ZMK_BLE)
         if (zmk_ble_active_profile_is_connected()) {
-            strcat(trans, "BT ");
+            strcat(trans, ICONS ? LV_SYMBOL_BLUETOOTH " " : "BT ");
         }
 #endif
 #if IS_ENABLED(CONFIG_ZMK_USB)
         if (zmk_usb_is_powered()) {
-            strcat(trans, "CH");
+            strcat(trans, ICONS ? LV_SYMBOL_CHARGE : "CH");
         }
 #endif
         lv_label_set_text(trans_label, trans);
@@ -160,7 +165,17 @@ static void refresh_cb(lv_timer_t *timer) {
          * rail means the charger sees no battery */
         no_batt = zmk_usb_is_powered() && mv > 4300;
 #endif
-        if (no_batt) {
+        if (ICONS) {
+            /* single battery glyph, top-right; X when no battery */
+            const char *sym = no_batt         ? LV_SYMBOL_CLOSE
+                              : (soc > 87)    ? LV_SYMBOL_BATTERY_FULL
+                              : (soc > 62)    ? LV_SYMBOL_BATTERY_3
+                              : (soc > 37)    ? LV_SYMBOL_BATTERY_2
+                              : (soc > 12)    ? LV_SYMBOL_BATTERY_1
+                                              : LV_SYMBOL_BATTERY_EMPTY;
+
+            snprintf(batt, sizeof(batt), "%s", sym);
+        } else if (no_batt) {
             snprintf(batt, sizeof(batt), "NO BATT");
         } else if (mv > 0) {
             snprintf(batt, sizeof(batt), "%s%d%% %d.%02dV", bsym, soc, mv / 1000,
@@ -244,7 +259,23 @@ lv_obj_t *zmk_display_status_screen(void) {
      * labels whose text changes each refresh sent LVGL's layout pass
      * into an endless loop, hanging the display thread on the first
      * render (the "only BASE shows" bug). */
-    if (tall) {
+    if (ICONS) {
+        /* icons variant: everything on the top row - transport glyphs on
+         * the left, single battery glyph near the right edge.  FIXED x,
+         * not right-alignment: the glyph has constant width so a fixed
+         * position is safe (edge alignment hangs the layout pass). */
+        lv_obj_set_pos(trans_label, tall ? 2 : 0, tall ? 2 : 0);
+        lv_obj_set_pos(batt_label, 110, tall ? 2 : 0);
+        if (tall) {
+            lv_obj_set_pos(locks_label, 2, 44);
+            lv_obj_set_pos(layer_label, 2, 66); /* montserrat 24 */
+            lv_obj_set_pos(wpm_label, 2, 104);
+        } else {
+            lv_obj_set_pos(layer_label, 0, 18);
+            lv_obj_set_pos(locks_label, 44, 18);
+            lv_obj_set_pos(wpm_label, 86, 18);
+        }
+    } else if (tall) {
         /* 128x128 */
         lv_obj_set_pos(trans_label, 2, 2);
         lv_obj_set_pos(batt_label, 2, 22);

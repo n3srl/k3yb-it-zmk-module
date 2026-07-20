@@ -33,3 +33,22 @@ include:
     shield: k3yb_it_oled128sh
     snippet: zmk-usb-logging
     artifact-name: k3yb_it_SH1107_128x128_debug
+  # icon variants: LV_SYMBOL glyphs instead of text markers (top row,
+  # battery glyph on the right); text-only variants above stay the default
+  - board: nice_nano_v2
+    shield: k3yb_it_oled32
+    cmake-args: -DCONFIG_K3YB_STATUS_ICONS=y
+    artifact-name: k3yb_it_SSD1306_128x32_icons
+  - board: nice_nano_v2
+    shield: k3yb_it_oled128
+    cmake-args: -DCONFIG_K3YB_STATUS_ICONS=y
+    artifact-name: k3yb_it_SSD1327_128x128_icons
+  - board: nice_nano_v2
+    shield: k3yb_it_oled128sh
+    cmake-args: -DCONFIG_K3YB_STATUS_ICONS=y
+    artifact-name: k3yb_it_SH1107_128x128_icons
+  - board: nice_nano_v2
+    shield: k3yb_it_oled128sh
+    snippet: zmk-usb-logging
+    cmake-args: -DCONFIG_K3YB_STATUS_ICONS=y
+    artifact-name: k3yb_it_SH1107_128x128_icons_debug

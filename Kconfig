@@ -17,6 +17,15 @@ config K3YB_BEHAVIOR_REPEAT
 
 
 
+config K3YB_STATUS_ICONS
+    bool "Status screen uses LVGL symbol icons instead of text markers"
+    default n
+    help
+      Replaces the USB/BT/CH text markers and the battery percentage with
+      the built-in LV_SYMBOL_* glyphs, all on the top row (battery on the
+      right).  Kept behind an option: glyph rendering crashed the display
+      thread before the stack/layout fixes, so text-only stays the default.
+
 config K3YB_SSD1327
     bool "k3yb SSD1327 grayscale OLED driver (mono over I2C)"
     default y

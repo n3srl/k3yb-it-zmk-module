@@ -226,9 +226,8 @@ lv_obj_t *zmk_display_status_screen(void) {
     lv_obj_t *screen = lv_obj_create(NULL);
     const bool tall = lv_disp_get_ver_res(NULL) >= 128;
 
-    /* white text on black background */
-    lv_obj_set_style_bg_color(screen, lv_color_black(), 0);
-    lv_obj_set_style_text_color(screen, lv_color_white(), 0);
+    /* colors come from the default theme + CONFIG_ZMK_DISPLAY_INVERT
+     * (manual color styles render inverted on the mono pipeline) */
 
     layer_label = lv_label_create(screen);
     lv_label_set_text(layer_label, "BASE");

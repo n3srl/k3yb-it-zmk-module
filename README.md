@@ -235,15 +235,15 @@ Known limitation: if an accent layer is *held* while the LED layer is
 toggled on, the LED layer (higher index) wins until released — harmless,
 since the accent layers only remap vowels.
 
-**Backlight hardware does not exist yet** — the 105 per-key LEDs arrive
-with the next PCB revision. The state machine, keymap, persistence and
-logging are final; `backlight_apply()` in `src/led_mux.c` is the single
-hook where the physical output will be wired in. Planned drive: the
-CD4052 **X section**. Caveat to resolve first: A/B/Inh are shared
-between sections, so `Xk` conducts exactly when `Yk` does — the
-backlight cannot be independent of the indicator that shares its
-address without sacrificing one address or adding external gating
-(see Hardware errata).
+**Backlight hardware does not exist yet and is deferred.** The CD4052
+**X section** was evaluated and ruled out: A/B/Inh are shared between
+sections, so `Xk` conducts exactly when `Yk` does — the backlight can
+never be independent of the indicator sharing its address, and no free
+nice!nano pin is available for a dedicated drive. The state machine,
+keymap, persistence and logging are final anyway; `backlight_apply()`
+in `src/led_mux.c` is the single hook to wire when a future PCB
+revision provides a drive (extra pin, I2C expander, or one sacrificed
+mux address).
 
 Estimated backlight current (indicative only — excludes MCU, OLED,
 regulator losses; depends on the LED series resistors, LED forward

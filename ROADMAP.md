@@ -38,12 +38,19 @@ at very low ambient temperatures:
 Tropicalized/conformal-coated PCB for humidity and condensation
 resistance (pairs with the low-temperature use case above).
 
-### PCB errata from v1 (documented in README)
+### PCB items deferred from the v1.1 respin
 
-- 4067 COM routed to +3.3V natively (no rework);
-- optional: 4067 E-bar to a dedicated pin (superseded by the firmware
-  parked-address masking, keep only if pins allow);
-- optional: 10k row pull-downs.
+The v1.1 production run (2026-08) fixes the 4067 COM→3.3V routing
+(pin 12 stays at GND!), the 2 misplaced and 3 rotated switch footprints,
+and moves the display to a JST-style SMD connector (pin order handled by
+the cable, not the PCB). Deferred to a later revision:
+
+- silkscreen aid for diode orientation (col→row, cathode at the row);
+- 10k row pull-downs (internal nRF pull-downs work in practice);
+- 4067 E-bar to a dedicated pin (superseded by the firmware
+  parked-address masking);
+- I2C pull-up footprints (OLED modules carry their own);
+- test points on 4067 COM, one row, one select, SDA/SCL.
 
 ### Firmware ideas
 

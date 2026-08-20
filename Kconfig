@@ -15,6 +15,22 @@ config K3YB_BEHAVIOR_REPEAT
     default y
     depends on DT_HAS_K3YB_BEHAVIOR_REPEAT_ENABLED
 
+config K3YB_BEHAVIOR_LED
+    bool "k3yb LED control behavior (backlight / flame toggles)"
+    default y
+    depends on DT_HAS_K3YB_BEHAVIOR_LED_ENABLED
+    depends on K3YB_LED_MUX
+
+config K3YB_BACKLIGHT_MAX
+    int "Maximum backlight PWM level (0-255)"
+    depends on K3YB_LED_MUX
+    range 0 255
+    default 64
+    help
+      Hard cap on the per-key backlight duty, battery-oriented.  The
+      brightness step table lives in src/led_mux.c (bl_levels[]); steps
+      above this cap are clamped at output time.
+
 
 
 config K3YB_STATUS_ICONS

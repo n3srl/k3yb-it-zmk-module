@@ -1,0 +1,12 @@
+# Copyright (c) 2026 k3yb.it
+# SPDX-License-Identifier: MIT
+
+description: |
+  Local LED-control behavior (&ledctl <action>): backlight on/off,
+  brightness step up/down, backlight flame, status-indicator flame.
+  Drives the k3yb LED controller directly - no HID events are sent.
+  Actions in include/dt-bindings/k3yb/led.h.
+
+compatible: "k3yb,behavior-led"
+
+include: one_param.yaml

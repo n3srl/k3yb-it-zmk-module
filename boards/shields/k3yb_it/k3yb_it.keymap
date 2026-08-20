@@ -6,6 +6,8 @@
  *   2  ital_grave      â€” Italian vowels grave accent (Ã  Ã¨ Ã¬ Ã² Ã¹ / Ã€ Ãˆ ÃŒ Ã’ Ã™)
  *   3  ital_acute      â€” Italian vowels acute accent (Ã¡ Ã© Ã­ Ã³ Ãº / Ã Ã‰ Ã Ã“ Ãš)
  *
+ *   4  led_control     - backlight / flame controls (Scroll Lock + Pause combo)
+ *
  * Italian layer activation:
  *   Hold NON_US_HASH key (row 6, main section) â†’ layer 2 (grave)
  *   Hold K_APP key       (row 7, main section) â†’ layer 3 (acute)
@@ -24,6 +26,7 @@
 #include <behaviors.dtsi>
 #include <dt-bindings/zmk/keys.h>
 #include <dt-bindings/zmk/bt.h>
+#include <dt-bindings/k3yb/led.h>
 
 /* Helper: 17 numpad &trans entries for layers that don't use the numpad */
 #define NP_TRANS \
@@ -257,6 +260,25 @@
         rp_i_ac: rp_i_ac { compatible = "k3yb,behavior-repeat"; #binding-cells = <0>; bindings = <&mm_i_ac>; };
         rp_o_ac: rp_o_ac { compatible = "k3yb,behavior-repeat"; #binding-cells = <0>; bindings = <&mm_o_ac>; };
         rp_u_ac: rp_u_ac { compatible = "k3yb,behavior-repeat"; #binding-cells = <0>; bindings = <&mm_u_ac>; };
+
+        /* local LED controls (no HID output) - actions in dt-bindings/k3yb/led.h */
+        ledctl: ledctl { compatible = "k3yb,behavior-led"; #binding-cells = <1>; };
+    };
+
+    /* ==================================================================
+     *  COMBOS
+     *  Scroll Lock + Pause (physical positions 14 and 15, row 0 of the
+     *  105-binding order) toggles the led_control layer.  Combos match
+     *  on positions and swallow the member keys' HID codes; active on
+     *  every layer, so the same chord also exits the LED layer.
+     * ================================================================== */
+    combos {
+        compatible = "zmk,combos";
+        combo_led_layer {
+            timeout-ms = <50>;
+            key-positions = <14 15>;
+            bindings = <&tog 4>;
+        };
     };
 
     /* ==================================================================
@@ -435,6 +457,50 @@
             &trans &trans &trans &trans &trans &trans
             /* numpad */
             NP_TRANS
+            >;
+        };
+
+        /* ----------------------------------------------------------
+         *  Layer 4 — led_control  (toggle: Scroll Lock + Pause combo)
+         *
+         *  ESC    exit to base layer (safety hatch; the combo works too)
+         *  F1     backlight on/off (keeps the brightness level)
+         *  F2     flame effect on the backlight only
+         *  F3     flame effect on the 4 status indicators only
+         *  = / KP+  brightness step up
+         *  - / KP-  brightness step down (step 0 = off)
+         *
+         *  Everything else is &none on purpose: while configuring LEDs
+         *  no character or command must reach the host.
+         * ---------------------------------------------------------- */
+        led_control {
+            bindings = <
+            /* row 0 — ESC exits; F1-F3 LED commands */
+            &to 0  &ledctl K3YB_LED_BL_TOGGLE &ledctl K3YB_LED_BL_FLAME &ledctl K3YB_LED_ST_FLAME
+            &none  &none  &none  &none
+            &none  &none  &none  &none  &none  &none  &none  &none
+            /* row 1 — MINUS = level down, EQUAL (+ key) = level up */
+            &none  &none  &none  &none  &none  &none  &none  &none
+            &none  &none  &none  &ledctl K3YB_LED_BL_DOWN  &ledctl K3YB_LED_BL_UP  &none
+            /* row 2 */
+            &none  &none  &none  &none  &none  &none  &none  &none
+            &none  &none  &none  &none  &none  &none  &none  &none
+            /* row 3 */
+            &none  &none  &none  &none  &none  &none  &none  &none
+            &none  &none  &none  &none  &none  &none  &none  &none
+            /* row 4 */
+            &none  &none  &none  &none  &none  &none  &none  &none
+            &none  &none  &none  &none  &none  &none
+            /* row 5 */
+            &none  &none  &none  &none  &none  &none
+            /* row 6 */
+            &none  &none  &none  &none  &none  &none
+            /* numpad — KP_SUBTRACT = down, KP_PLUS = up */
+            &none  &none  &none  &ledctl K3YB_LED_BL_DOWN
+            &none  &none  &none  &ledctl K3YB_LED_BL_UP
+            &none  &none  &none
+            &none  &none  &none
+            &none         &none  &none
             >;
         };
 

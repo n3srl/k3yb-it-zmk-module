@@ -155,6 +155,14 @@ each *active* LED flickers like a small flame: its slot is lit with
 probability `level/256`, and each LED's `level` random-walks on its own
 50–230 ms cadence, so the four flames are never in sync.
 
+### `src/behavior_led.c` — local LED-control behavior
+
+Compatible: `k3yb,behavior-led` (`&ledctl <action>`, actions in
+`include/dt-bindings/k3yb/led.h`). Drives the LED controller API in
+`led_mux.c` directly — **no HID events are sent to the host**. State is
+persisted through ZMK Settings (single deferred flash write ~1 s after
+the last change, validated on load, defaults on invalid data).
+
 ### `src/behavior_repeat.c` — auto-repeat wrapper behavior
 
 Compatible: `k3yb,behavior-repeat`. Wraps another behavior (here the
@@ -198,6 +206,58 @@ need **NumLock ON** and work on Windows hosts.
 - Holding a vowel repeats the accent (firmware-side auto-repeat).
 
 Bootloader shortcut: hold **AltGr + ESC** to enter the UF2 bootloader.
+
+## LED control layer (layer 4)
+
+Press **Scroll Lock + Pause together** (combo on physical positions 14+15,
+50 ms window; the chord is swallowed, no Scroll Lock/Pause reaches the
+host) to toggle the `led_control` layer. The same chord exits it; **ESC**
+(`&to 0`) is the safety hatch. Every unassigned key is `&none`, so no
+stray characters reach the host while configuring.
+
+| Key | Action |
+| --- | --- |
+| `ESC` | exit to base layer |
+| `F1` | backlight on/off (level is remembered) |
+| `F2` | flame effect on the backlight only |
+| `F3` | flame effect on the 4 status indicators only |
+| `=` / `KP +` | brightness step up |
+| `-` / `KP -` | brightness step down (step 0 = off) |
+
+Brightness steps (0–255 scale, table in `src/led_mux.c`): 0, 8, 16, 32,
+48, 64 — initial 32, hard cap `CONFIG_K3YB_BACKLIGHT_MAX` (default 64,
+~25% duty, battery-oriented). Backlight on/off, level, backlight flame,
+indicator flame and the logical lock states are five independent pieces
+of state. The accent indicator (Y3) lights only for layers 2/3, never
+for the LED layer.
+
+Known limitation: if an accent layer is *held* while the LED layer is
+toggled on, the LED layer (higher index) wins until released — harmless,
+since the accent layers only remap vowels.
+
+**Backlight hardware does not exist yet** — the 105 per-key LEDs arrive
+with the next PCB revision. The state machine, keymap, persistence and
+logging are final; `backlight_apply()` in `src/led_mux.c` is the single
+hook where the physical output will be wired in. Planned drive: the
+CD4052 **X section**. Caveat to resolve first: A/B/Inh are shared
+between sections, so `Xk` conducts exactly when `Yk` does — the
+backlight cannot be independent of the indicator that shares its
+address without sacrificing one address or adding external gating
+(see Hardware errata).
+
+Estimated backlight current (indicative only — excludes MCU, OLED,
+regulator losses; depends on the LED series resistors, LED forward
+voltage and battery voltage):
+
+    I_total_peak = LED_count x peak_current_per_LED
+    I_total_avg  ~= I_total_peak x duty_PWM x duty_mux
+
+with `LED_count = 105`, `duty_PWM = level/255`, `duty_mux = 1` on a
+dedicated GPIO or `0.25` when lit in one of the four CD4052 slots.
+Example at 3 mA peak per LED, level 64:
+
+    dedicated GPIO: 105 x 3 mA x 64/255        ~= 79 mA avg
+    mux slot:       105 x 3 mA x 64/255 x 0.25 ~= 20 mA avg
 
 ## Debugging
 

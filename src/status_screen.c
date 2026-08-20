@@ -218,6 +218,8 @@ static const char *layer_display_name(uint8_t idx) {
         return "GRAVE `";
     case 3:
         return "ACUTO '";
+    case 4:
+        return "LED";
     default:
         return "?";
     }

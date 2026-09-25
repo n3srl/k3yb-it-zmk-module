@@ -43,40 +43,39 @@
      *  Pattern: release Shift â†’ hold LAlt â†’ tap 4 KP digits â†’ release LAlt
      * ================================================================== */
     macros {
+        /* NOTE: the macros do NOT release Shift themselves - the mod-morph
+         * already masks the triggering mods while the binding is active and
+         * restores them on release.  An explicit &macro_release LSHFT here
+         * killed the physically-held shift, so E-E-E typed E-e-e. */
 
         /* grave lowercase */
         m_a_gr: m_a_gr {
             compatible = "zmk,behavior-macro"; #binding-cells = <0>;
-            bindings = <&macro_release &kp LSHFT &kp RSHFT>
-                     , <&macro_press &kp LALT>
+            bindings = <&macro_press &kp LALT>
                      , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N2 &kp KP_N4>  /* 0224 = Ã  */
                      , <&macro_release &kp LALT>;
         };
         m_e_gr: m_e_gr {
             compatible = "zmk,behavior-macro"; #binding-cells = <0>;
-            bindings = <&macro_release &kp LSHFT &kp RSHFT>
-                     , <&macro_press &kp LALT>
+            bindings = <&macro_press &kp LALT>
                      , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N3 &kp KP_N2>  /* 0232 = Ã¨ */
                      , <&macro_release &kp LALT>;
         };
         m_i_gr: m_i_gr {
             compatible = "zmk,behavior-macro"; #binding-cells = <0>;
-            bindings = <&macro_release &kp LSHFT &kp RSHFT>
-                     , <&macro_press &kp LALT>
+            bindings = <&macro_press &kp LALT>
                      , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N3 &kp KP_N6>  /* 0236 = Ã¬ */
                      , <&macro_release &kp LALT>;
         };
         m_o_gr: m_o_gr {
             compatible = "zmk,behavior-macro"; #binding-cells = <0>;
-            bindings = <&macro_release &kp LSHFT &kp RSHFT>
-                     , <&macro_press &kp LALT>
+            bindings = <&macro_press &kp LALT>
                      , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N4 &kp KP_N2>  /* 0242 = Ã² */
                      , <&macro_release &kp LALT>;
         };
         m_u_gr: m_u_gr {
             compatible = "zmk,behavior-macro"; #binding-cells = <0>;
-            bindings = <&macro_release &kp LSHFT &kp RSHFT>
-                     , <&macro_press &kp LALT>
+            bindings = <&macro_press &kp LALT>
                      , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N4 &kp KP_N9>  /* 0249 = Ã¹ */
                      , <&macro_release &kp LALT>;
         };
@@ -84,36 +83,31 @@
         /* grave uppercase */
         m_a_gr_up: m_a_gr_up {
             compatible = "zmk,behavior-macro"; #binding-cells = <0>;
-            bindings = <&macro_release &kp LSHFT &kp RSHFT>
-                     , <&macro_press &kp LALT>
+            bindings = <&macro_press &kp LALT>
                      , <&macro_tap &kp KP_N0 &kp KP_N1 &kp KP_N9 &kp KP_N2>  /* 0192 = Ã€ */
                      , <&macro_release &kp LALT>;
         };
         m_e_gr_up: m_e_gr_up {
             compatible = "zmk,behavior-macro"; #binding-cells = <0>;
-            bindings = <&macro_release &kp LSHFT &kp RSHFT>
-                     , <&macro_press &kp LALT>
+            bindings = <&macro_press &kp LALT>
                      , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N0 &kp KP_N0>  /* 0200 = Ãˆ */
                      , <&macro_release &kp LALT>;
         };
         m_i_gr_up: m_i_gr_up {
             compatible = "zmk,behavior-macro"; #binding-cells = <0>;
-            bindings = <&macro_release &kp LSHFT &kp RSHFT>
-                     , <&macro_press &kp LALT>
+            bindings = <&macro_press &kp LALT>
                      , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N0 &kp KP_N4>  /* 0204 = ÃŒ */
                      , <&macro_release &kp LALT>;
         };
         m_o_gr_up: m_o_gr_up {
             compatible = "zmk,behavior-macro"; #binding-cells = <0>;
-            bindings = <&macro_release &kp LSHFT &kp RSHFT>
-                     , <&macro_press &kp LALT>
+            bindings = <&macro_press &kp LALT>
                      , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N1 &kp KP_N0>  /* 0210 = Ã’ */
                      , <&macro_release &kp LALT>;
         };
         m_u_gr_up: m_u_gr_up {
             compatible = "zmk,behavior-macro"; #binding-cells = <0>;
-            bindings = <&macro_release &kp LSHFT &kp RSHFT>
-                     , <&macro_press &kp LALT>
+            bindings = <&macro_press &kp LALT>
                      , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N1 &kp KP_N7>  /* 0217 = Ã™ */
                      , <&macro_release &kp LALT>;
         };
@@ -121,36 +115,31 @@
         /* acute lowercase */
         m_a_ac: m_a_ac {
             compatible = "zmk,behavior-macro"; #binding-cells = <0>;
-            bindings = <&macro_release &kp LSHFT &kp RSHFT>
-                     , <&macro_press &kp LALT>
+            bindings = <&macro_press &kp LALT>
                      , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N2 &kp KP_N5>  /* 0225 = Ã¡ */
                      , <&macro_release &kp LALT>;
         };
         m_e_ac: m_e_ac {
             compatible = "zmk,behavior-macro"; #binding-cells = <0>;
-            bindings = <&macro_release &kp LSHFT &kp RSHFT>
-                     , <&macro_press &kp LALT>
+            bindings = <&macro_press &kp LALT>
                      , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N3 &kp KP_N3>  /* 0233 = Ã© */
                      , <&macro_release &kp LALT>;
         };
         m_i_ac: m_i_ac {
             compatible = "zmk,behavior-macro"; #binding-cells = <0>;
-            bindings = <&macro_release &kp LSHFT &kp RSHFT>
-                     , <&macro_press &kp LALT>
+            bindings = <&macro_press &kp LALT>
                      , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N3 &kp KP_N7>  /* 0237 = Ã­ */
                      , <&macro_release &kp LALT>;
         };
         m_o_ac: m_o_ac {
             compatible = "zmk,behavior-macro"; #binding-cells = <0>;
-            bindings = <&macro_release &kp LSHFT &kp RSHFT>
-                     , <&macro_press &kp LALT>
+            bindings = <&macro_press &kp LALT>
                      , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N4 &kp KP_N3>  /* 0243 = Ã³ */
                      , <&macro_release &kp LALT>;
         };
         m_u_ac: m_u_ac {
             compatible = "zmk,behavior-macro"; #binding-cells = <0>;
-            bindings = <&macro_release &kp LSHFT &kp RSHFT>
-                     , <&macro_press &kp LALT>
+            bindings = <&macro_press &kp LALT>
                      , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N5 &kp KP_N0>  /* 0250 = Ãº */
                      , <&macro_release &kp LALT>;
         };
@@ -158,36 +147,31 @@
         /* acute uppercase */
         m_a_ac_up: m_a_ac_up {
             compatible = "zmk,behavior-macro"; #binding-cells = <0>;
-            bindings = <&macro_release &kp LSHFT &kp RSHFT>
-                     , <&macro_press &kp LALT>
+            bindings = <&macro_press &kp LALT>
                      , <&macro_tap &kp KP_N0 &kp KP_N1 &kp KP_N9 &kp KP_N3>  /* 0193 = Ã */
                      , <&macro_release &kp LALT>;
         };
         m_e_ac_up: m_e_ac_up {
             compatible = "zmk,behavior-macro"; #binding-cells = <0>;
-            bindings = <&macro_release &kp LSHFT &kp RSHFT>
-                     , <&macro_press &kp LALT>
+            bindings = <&macro_press &kp LALT>
                      , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N0 &kp KP_N1>  /* 0201 = Ã‰ */
                      , <&macro_release &kp LALT>;
         };
         m_i_ac_up: m_i_ac_up {
             compatible = "zmk,behavior-macro"; #binding-cells = <0>;
-            bindings = <&macro_release &kp LSHFT &kp RSHFT>
-                     , <&macro_press &kp LALT>
+            bindings = <&macro_press &kp LALT>
                      , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N0 &kp KP_N5>  /* 0205 = Ã */
                      , <&macro_release &kp LALT>;
         };
         m_o_ac_up: m_o_ac_up {
             compatible = "zmk,behavior-macro"; #binding-cells = <0>;
-            bindings = <&macro_release &kp LSHFT &kp RSHFT>
-                     , <&macro_press &kp LALT>
+            bindings = <&macro_press &kp LALT>
                      , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N1 &kp KP_N1>  /* 0211 = Ã“ */
                      , <&macro_release &kp LALT>;
         };
         m_u_ac_up: m_u_ac_up {
             compatible = "zmk,behavior-macro"; #binding-cells = <0>;
-            bindings = <&macro_release &kp LSHFT &kp RSHFT>
-                     , <&macro_press &kp LALT>
+            bindings = <&macro_press &kp LALT>
                      , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N1 &kp KP_N8>  /* 0218 = Ãš */
                      , <&macro_release &kp LALT>;
         };

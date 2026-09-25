@@ -463,8 +463,9 @@
             &to 0  &ledctl K3YB_LED_BL_TOGGLE &ledctl K3YB_LED_BL_FLAME &ledctl K3YB_LED_ST_FLAME
             &none  &none  &none  &none
             &none  &none  &none  &none  &none  &none  &none  &none
-            /* row 1 — MINUS = level down, EQUAL (+ key) = level up */
-            &none  &none  &none  &none  &none  &none  &none  &none
+            /* row 1 — 1-5 = BT profile 0-4; MINUS = level down,
+             * EQUAL (+ key) = level up */
+            &none  &bt BT_SEL 0  &bt BT_SEL 1  &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_SEL 4  &none  &none
             &none  &none  &none  &ledctl K3YB_LED_BL_DOWN  &ledctl K3YB_LED_BL_UP  &none
             /* row 2 */
             &none  &none  &none  &none  &none  &none  &none  &none
@@ -472,8 +473,8 @@
             /* row 3 */
             &none  &none  &none  &none  &none  &none  &none  &none
             &none  &none  &none  &none  &none  &none  &none  &none
-            /* row 4 */
-            &none  &none  &none  &none  &none  &none  &none  &none
+            /* row 4 — B = clear the active BT profile's bond (re-pair) */
+            &none  &none  &none  &none  &none  &none  &bt BT_CLR  &none
             &none  &none  &none  &none  &none  &none
             /* row 5 */
             &none  &none  &none  &none  &none  &none

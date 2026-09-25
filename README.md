@@ -223,6 +223,8 @@ stray characters reach the host while configuring.
 | `F3` | flame effect on the 4 status indicators only |
 | `=` / `KP +` | brightness step up |
 | `-` / `KP -` | brightness step down (step 0 = off) |
+| `1` … `5` | select Bluetooth profile 0–4 |
+| `B` | clear the active BT profile's bond (start advertising / re-pair) |
 
 Brightness steps (0–255 scale, table in `src/led_mux.c`): 0, 8, 16, 32,
 48, 64 — initial 32, hard cap `CONFIG_K3YB_BACKLIGHT_MAX` (default 64,

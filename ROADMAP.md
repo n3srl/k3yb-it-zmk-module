@@ -37,9 +37,15 @@ a different address) — **zero extra nice!nano pins, no extra mux**:
   dimmer to the eye for the same current), so it reaches a usable level
   at the lowest current; pick a high-efficiency part rated for good
   brightness at 1-2 mA;
-- package to match the switch LED window: 1206 reverse-mount SMD
-  (shining up through the PCB) or 2x3x4 mm / 3 mm THT in the switch LED
-  holes; prefer SMD from the assembler's basic/extended library;
+- switches are Kailh BOX White (IP56 housing, translucent top): V1 BOX
+  accepts SMD LEDs only, V2 also 2-pin THT — so use **1206 reverse-mount
+  SMD** on the PCB bottom, shining through a cutout under the switch LED
+  window (switch footprint must include the cutout);
+- chosen part: **TUOZHAN P2-1206WYCS2-0.9T-F** (LCSC C2827252), white,
+  reverse-mount 1206, 1 cd @ 20 mA, Vf 3.4 V; alternative **MEIHUA
+  MHT151WDT** (LCSC C401114), 900 mcd @ 20 mA, Vf 3.65 V (less PVCC
+  headroom). At the ~1-2 mA backlight operating point both are far
+  brighter than needed under keycaps;
 - **headroom:** white/blue Vf is ~2.8-3.2 V; the driver needs roughly
   Vf + 0.5-0.7 V on PVCC. Straight from VBAT the backlight dims below
   ~3.7 V battery. Either accept it (backlight fades in the lower half of

@@ -22,6 +22,10 @@
 #include <k3yb/led_ctrl.h>
 #if IS_ENABLED(CONFIG_K3YB_RECORDER)
 #include <k3yb/recorder.h>
+#elif DT_NODE_EXISTS(DT_NODELABEL(recorder_partition))
+/* the keymap binds K3YB_LED_REC_* and the flash is carved out: a silently
+ * disabled recorder would turn R/P/DEL into no-ops */
+#error "recorder_partition defined but CONFIG_K3YB_RECORDER is off"
 #endif
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);

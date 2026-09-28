@@ -166,3 +166,36 @@
      *   k3yb_it_oled128 - SSD1327 128x128
      */
 };
+
+/* -------------------------------------------------------------------
+ *  Flash layout: dedicated partition for the offline keystroke recorder
+ *  (src/recorder.c).  Carved from the END of the nice!nano v2 code
+ *  partition (stock: 0x26000 + 0xc6000 = 792 KiB, up to 0xec000), so
+ *  settings (storage_partition @ 0xec000) and the bootloader are
+ *  untouched.  The UF2 bootloader only programs the pages in the image,
+ *  so a firmware update normally leaves the recorded notes in place.
+ *
+ *      0x26000  code_partition      792 KiB - K3YB_REC_PART_SIZE
+ *      0xcc000  recorder_partition  K3YB_REC_PART_SIZE (128 KiB,
+ *                                   ~65 500 key events)
+ *      0xec000  storage_partition   (settings, unchanged)
+ *
+ *  To resize: change K3YB_REC_PART_SIZE (multiple of 4 KiB) AND the
+ *  node's unit address (0xec000 - size), which cannot be computed.
+ *  The linker enforces the smaller code partition.
+ * ------------------------------------------------------------------- */
+#define K3YB_REC_PART_SIZE 0x20000
+#define K3YB_CODE_END 0xec000
+
+&code_partition {
+    reg = <0x00026000 (K3YB_CODE_END - 0x00026000 - K3YB_REC_PART_SIZE)>;
+};
+
+&flash0 {
+    partitions {
+        recorder_partition: partition@cc000 {
+            label = "k3yb-recorder";
+            reg = <(K3YB_CODE_END - K3YB_REC_PART_SIZE) K3YB_REC_PART_SIZE>;
+        };
+    };
+};

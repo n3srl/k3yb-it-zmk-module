@@ -5,6 +5,10 @@
  * LED-control behavior: &ledctl <action>.  Purely local - drives the
  * k3yb LED controller API, never emits HID events to the host.
  * Actions are defined in include/dt-bindings/k3yb/led.h.
+ *
+ * The K3YB_LED_REC_* actions forward to the offline recorder
+ * (src/recorder.c); the behavior itself still emits nothing - only the
+ * recorder's playback, once started, sends HID.
  */
 
 #define DT_DRV_COMPAT k3yb_behavior_led
@@ -16,6 +20,9 @@
 
 #include <dt-bindings/k3yb/led.h>
 #include <k3yb/led_ctrl.h>
+#if IS_ENABLED(CONFIG_K3YB_RECORDER)
+#include <k3yb/recorder.h>
+#endif
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
@@ -41,6 +48,17 @@ static int on_led_binding_pressed(struct zmk_behavior_binding *binding,
     case K3YB_LED_ST_FLAME:
         k3yb_status_flame_toggle();
         break;
+#if IS_ENABLED(CONFIG_K3YB_RECORDER)
+    case K3YB_LED_REC_TOGGLE:
+        k3yb_recorder_toggle();
+        break;
+    case K3YB_LED_REC_PLAY:
+        k3yb_recorder_playback();
+        break;
+    case K3YB_LED_REC_CLEAR:
+        k3yb_recorder_clear();
+        break;
+#endif
     default:
         LOG_WRN("unknown led action %d", binding->param1);
         break;

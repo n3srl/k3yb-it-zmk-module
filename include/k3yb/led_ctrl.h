@@ -23,6 +23,13 @@ void k3yb_backlight_flame_toggle(void);
 /* flame effect on the four status indicators */
 void k3yb_status_flame_toggle(void);
 
+/* blink on one status indicator (CONFIG_K3YB_LED_BLINK_INDEX, default Y3),
+ * overriding its normal state - recorder feedback.
+ *   blink_set: steady slow blink (CONFIG_K3YB_LED_BLINK_PERIOD_MS, 50% duty)
+ *   blink_alert: fast blink for duration_ms, then back to the slow/off state */
+void k3yb_status_blink_set(bool on);
+void k3yb_status_blink_alert(uint16_t duration_ms);
+
 /* read-only state, for display/debug */
 bool k3yb_backlight_is_on(void);
 uint8_t k3yb_backlight_level_index(void);

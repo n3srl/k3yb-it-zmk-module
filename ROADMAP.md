@@ -6,7 +6,8 @@ Feature-complete firmware for the current PCB: full 105-key matrix,
 Italian accent layers with auto-repeat, flame status LEDs, three display
 variants (SSD1306 128x32, SSD1327 128x128, SH1107 128x128) with text and
 icon status screens, LED-control layer (Scroll Lock + Pause combo) with
-persistent settings. Per-key backlight is state-machine-only (no drive
+persistent settings, offline note recorder (128 KiB internal-flash
+keystroke log with HID playback). Per-key backlight is state-machine-only (no drive
 hardware on this PCB).
 
 ## v2 (next PCB revision + firmware)
@@ -104,6 +105,10 @@ the cable, not the PCB). Deferred to a later revision:
 ### Firmware ideas
 
 - OLED page for LED/backlight status (getter API already exposed);
+- recorder on the OLED: REC marker + events used/capacity
+  (`k3yb_recorder_count()` / `_capacity()` already exposed);
+- recorder: optional ring-buffer mode (overwrite oldest page) instead of
+  stop-at-full;
 - custom 1bpp icon/text fonts (LVGL Montserrat 4bpp crashes this
   pipeline — any custom font must be converted at bpp 1);
 - richer battery telemetry screen.

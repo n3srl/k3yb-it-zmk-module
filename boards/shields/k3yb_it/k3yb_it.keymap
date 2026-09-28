@@ -6,7 +6,7 @@
  *   2  ital_grave      â€” Italian vowels grave accent (Ã  Ã¨ Ã¬ Ã² Ã¹ / Ã€ Ãˆ ÃŒ Ã’ Ã™)
  *   3  ital_acute      â€” Italian vowels acute accent (Ã¡ Ã© Ã­ Ã³ Ãº / Ã Ã‰ Ã Ã“ Ãš)
  *
- *   4  led_control     - backlight / flame controls (Scroll Lock + Pause combo)
+ *   4  led_control     - backlight / flame / BT / recorder controls (Scroll Lock + Pause combo)
  *
  * Italian layer activation:
  *   Hold NON_US_HASH key (row 6, main section) â†’ layer 2 (grave)
@@ -453,6 +453,9 @@
          *  F3     flame effect on the 4 status indicators only
          *  = / KP+  brightness step up
          *  - / KP-  brightness step down (step 0 = off)
+         *  R      recorder REC on/off (Y3 blinks while recording)
+         *  P      recorder playback via HID (press again = stop)
+         *  DEL    recorder CLEAR (erase the buffer)
          *
          *  Everything else is &none on purpose: while configuring LEDs
          *  no character or command must reach the host.
@@ -467,12 +470,12 @@
              * EQUAL (+ key) = level up */
             &none  &bt BT_SEL 0  &bt BT_SEL 1  &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_SEL 4  &none  &none
             &none  &none  &none  &ledctl K3YB_LED_BL_DOWN  &ledctl K3YB_LED_BL_UP  &none
-            /* row 2 */
+            /* row 2 — R = recorder REC on/off, P = playback (again = stop) */
+            &none  &none  &none  &none  &ledctl K3YB_LED_REC_TOGGLE  &none  &none  &none
+            &none  &none  &ledctl K3YB_LED_REC_PLAY  &none  &none  &none  &none  &none
+            /* row 3 — DEL = recorder CLEAR (erases the notes buffer) */
             &none  &none  &none  &none  &none  &none  &none  &none
-            &none  &none  &none  &none  &none  &none  &none  &none
-            /* row 3 */
-            &none  &none  &none  &none  &none  &none  &none  &none
-            &none  &none  &none  &none  &none  &none  &none  &none
+            &none  &none  &none  &none  &none  &ledctl K3YB_LED_REC_CLEAR  &none  &none
             /* row 4 — B = clear the active BT profile's bond (re-pair) */
             &none  &none  &none  &none  &none  &none  &bt BT_CLR  &none
             &none  &none  &none  &none  &none  &none

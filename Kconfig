@@ -31,6 +31,57 @@ config K3YB_BACKLIGHT_MAX
       brightness step table lives in src/led_mux.c (bl_levels[]); steps
       above this cap are clamped at output time.
 
+config K3YB_LED_BLINK_INDEX
+    int "Status indicator used for blink feedback (0-3 = Y0-Y3)"
+    depends on K3YB_LED_MUX
+    range 0 3
+    default 3
+    help
+      Indicator taken over by the recorder blink (Y3 = the layer LED).
+      While a blink is active it overrides that LED's normal state.
+
+config K3YB_LED_BLINK_PERIOD_MS
+    int "Slow blink period in ms (50% duty)"
+    depends on K3YB_LED_MUX
+    range 200 10000
+    default 1000
+    help
+      Blink shown while the recorder is recording.  Sampled by the 40 ms
+      LED refresh, so the phase resolution is 40 ms.
+
+config K3YB_RECORDER
+    bool "k3yb offline keystroke recorder (internal flash)"
+    default y
+    depends on $(dt_nodelabel_enabled,recorder_partition)
+    depends on K3YB_LED_MUX
+    select FLASH
+    select FLASH_MAP
+    help
+      Records key presses to the dedicated recorder_partition (see
+      k3yb_it.dtsi) and replays them via HID.  Controlled by the
+      &ledctl K3YB_LED_REC_* actions.  The buffer holds typed keys in
+      clear text until CLEAR.
+
+if K3YB_RECORDER
+
+config K3YB_RECORDER_PLAYBACK_DELAY_MS
+    int "Playback delay between HID steps in ms"
+    range 1 1000
+    default 12
+    help
+      Fixed delay after every press, release and modifier change during
+      playback (~2 steps per key).  Raise it if the host drops keys.
+
+config K3YB_RECORDER_RESUME
+    bool "Resume recording after reset / deep-sleep wake"
+    default y
+    depends on SETTINGS
+    help
+      Persists the REC on/off flag (one settings entry, not the buffer),
+      so ZMK's idle deep sleep does not end a recording session.
+
+endif # K3YB_RECORDER
+
 
 
 config K3YB_STATUS_ICONS

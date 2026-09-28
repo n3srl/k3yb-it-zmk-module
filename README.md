@@ -163,6 +163,16 @@ Compatible: `k3yb,behavior-led` (`&ledctl <action>`, actions in
 persisted through ZMK Settings (single deferred flash write ~1 s after
 the last change, validated on load, defaults on invalid data).
 
+### `src/recorder.c` — offline keystroke recorder
+
+Listens to `zmk_keycode_state_changed`, appends 2-byte events to
+`recorder_partition` from its own work queue (flash writes never stall
+the key scan), and replays them from a non-blocking delayable work item
+that raises keycode events through the normal HID path, holding
+modifiers across consecutive presses. Log format and the nRF52
+two-programs-per-word trick used to persist every single event are
+documented at the top of the file. See [Offline note recorder](#offline-note-recorder).
+
 ### `src/behavior_repeat.c` — auto-repeat wrapper behavior
 
 Compatible: `k3yb,behavior-repeat`. Wraps another behavior (here the
@@ -225,6 +235,9 @@ stray characters reach the host while configuring.
 | `-` / `KP -` | brightness step down (step 0 = off) |
 | `1` … `5` | select Bluetooth profile 0–4 |
 | `B` | clear the active BT profile's bond (start advertising / re-pair) |
+| `R` | offline recorder: REC on/off (Y3 blinks, 1 s period, while recording) |
+| `P` | offline recorder: replay the buffer via HID (press again = stop) |
+| `DEL` | offline recorder: CLEAR — erase the buffer |
 
 Brightness steps (0–255 scale, table in `src/led_mux.c`): 0, 8, 16, 32,
 48, 64 — initial 32, hard cap `CONFIG_K3YB_BACKLIGHT_MAX` (default 64,
@@ -260,6 +273,70 @@ Example at 3 mA peak per LED, level 64:
 
     dedicated GPIO: 105 x 3 mA x 64/255        ~= 79 mA avg
     mux slot:       105 x 3 mA x 64/255 x 0.25 ~= 20 mA avg
+
+## Offline note recorder
+
+Take notes in a meeting with the keyboard on battery, **no host and no
+monitor**, then replay them into an editor on the PC (save to file, feed
+to an LLM to rewrite them).
+
+1. `Scroll Lock + Pause` → `R` → `ESC`: recording on, **Y3 blinks**
+   (0.5 s on / 0.5 s off).
+2. Type. Every key press is written to flash immediately.
+3. `Scroll Lock + Pause` → `R`: recording off, blink stops.
+4. At the PC (USB or BT), open an empty editor, focus it, then
+   `Scroll Lock + Pause` → `P`. The text is typed back at ~40 keys/s;
+   `P` again stops it. Exit the layer with `ESC`.
+5. `Scroll Lock + Pause` → `DEL`: erase the buffer (Y3 flashes fast
+   briefly as confirmation).
+
+Feedback on Y3: slow blink = recording; ~3 s fast blink = buffer full
+(recording stopped) or flash error; short fast blink = CLEAR done, or a
+command refused (e.g. `P` while recording, `R` while playing back).
+
+**What is stored.** Key presses only, no timing: 2 bytes per event —
+the modifiers the host sees at that press + the HID usage. Enter, Space,
+Backspace, Tab, arrows, the accent macros' Alt+numpad digits: everything
+that produces a keyboard keycode. Releasing a modifier stores a marker
+(usage `0x00`) so Alt+numpad sequences stay separate on replay. LED-layer
+commands, BT commands and the combo produce no keycodes and are not
+recorded.
+
+**Storage.** Dedicated 128 KiB partition in the nRF52840 internal flash
+(`recorder_partition` @ `0xcc000`, carved from the end of the code
+partition in `k3yb_it.dtsi`; ~65 500 events) — **not** the Zephyr
+settings partition. Linear log with stop at full. Each event is
+programmed as soon as it is typed, so it survives power-off, reset,
+deep sleep and **battery removal**. Firmware updates via UF2 normally
+leave it intact (the bootloader only writes the image pages). With
+`CONFIG_K3YB_RECORDER_RESUME` (default) the REC on/off flag is kept in
+settings, so ZMK's 15-minute idle deep sleep does not end a session:
+after the wake-up reset recording continues (the key that wakes the
+board is not recorded).
+
+**Playback caveats.**
+
+- Raw keycodes are replayed: the host must use the **same OS layout as
+  when recording** — here US layout with **NumLock ON** for the accent
+  macros. No layout conversion is done.
+- Lock keys are replayed too: a recorded Caps Lock / Num Lock toggles
+  the host's lock state.
+- Playback does not count as keyboard activity for ZMK's idle timer.
+  On USB power the board never sleeps; on battery over BT a playback
+  longer than the idle timeout (15 min ≈ 36 000 keys) would be cut off.
+- Keys typed during playback go to the host as usual (interleaved).
+
+> **Privacy note:** the buffer holds everything typed while recording
+> **in clear text in the keyboard's flash** until `CLEAR` — including
+> anything sensitive typed with REC on. Anyone with physical access and
+> a debugger/UF2 dump can read it. Clear after replaying.
+
+Tuning (Kconfig): `CONFIG_K3YB_RECORDER_PLAYBACK_DELAY_MS` (default 12,
+delay after every press/release/modifier step — raise it if the host
+drops keys), `CONFIG_K3YB_LED_BLINK_PERIOD_MS` (1000),
+`CONFIG_K3YB_LED_BLINK_INDEX` (3 = Y3), `CONFIG_K3YB_RECORDER_RESUME`.
+Partition size: `K3YB_REC_PART_SIZE` in `k3yb_it.dtsi` (also update the
+node's unit address, see the comment there).
 
 ## Debugging
 

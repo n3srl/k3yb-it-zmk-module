@@ -11,6 +11,10 @@
  *   Y1 (A=1,B=0)  Caps Lock
  *   Y2 (A=0,B=1)  Scroll Lock
  *   Y3 (A=1,B=1)  accent layer active (grave or acute held)
+ *
+ * One indicator (CONFIG_K3YB_LED_BLINK_INDEX, default Y3) can be taken
+ * over by a blink for recorder feedback: slow while REC is on, fast for a
+ * short alert (buffer full, CLEAR done).
  */
 
 #include <string.h>
@@ -43,6 +47,10 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define FLAME_MODE DT_PROP(LED_MUX_NODE, flame_mode)
 #define FLAME_MIN 90 /* lowest flame brightness, 0-255 */
 
+#define BLINK_IDX CONFIG_K3YB_LED_BLINK_INDEX
+#define BLINK_PERIOD_MS CONFIG_K3YB_LED_BLINK_PERIOD_MS
+#define ALERT_PERIOD_MS 200 /* fast blink, 5 Hz */
+
 static const struct gpio_dt_spec sel_a = GPIO_DT_SPEC_GET(LED_MUX_NODE, a_gpios);
 static const struct gpio_dt_spec sel_b = GPIO_DT_SPEC_GET(LED_MUX_NODE, b_gpios);
 static const struct gpio_dt_spec inh = GPIO_DT_SPEC_GET(LED_MUX_NODE, inh_gpios);
@@ -50,6 +58,11 @@ static const struct gpio_dt_spec inh = GPIO_DT_SPEC_GET(LED_MUX_NODE, inh_gpios)
 static volatile uint8_t led_states;          /* bit n = LED Yn on */
 static volatile uint8_t led_level[4];        /* per-LED brightness 0-255 (flame) */
 static int16_t flame_countdown[4];           /* ms until this LED picks a new level */
+static volatile uint8_t blink_mask;          /* LEDs currently driven by a blink: no flame */
+
+/* blink state, evaluated by the 40 ms refresh (period >> refresh step) */
+static bool blink_on;         /* slow blink requested (REC on) */
+static uint32_t alert_until;  /* k_uptime_get_32() end of the fast blink, 0 = none */
 
 /* ---- LED controller state (see include/k3yb/led_ctrl.h) ----------------
  * Kept strictly separate, as independent knobs:
@@ -94,7 +107,7 @@ static void led_mux_tick(struct k_timer *timer) {
     gpio_pin_set_dt(&sel_a, idx & 0x1);
     gpio_pin_set_dt(&sel_b, (idx >> 1) & 0x1);
     if (led_states & BIT(idx)) {
-        if (!status_flame || prand() < led_level[idx]) {
+        if (!status_flame || (blink_mask & BIT(idx)) || prand() < led_level[idx]) {
             gpio_pin_set_dt(&inh, 1); /* logical 1 = enabled (inh is active-low wired) */
         }
     }
@@ -130,6 +143,29 @@ static void led_mux_refresh(struct k_work *work) {
      * the accent indicator. */
     if (zmk_keymap_layer_active(2) || zmk_keymap_layer_active(3)) {
         states |= BIT(3);
+    }
+
+    /* blink overrides its indicator's normal state; crisp (no flame) so
+     * the on/off phases are unambiguous.  Phase comes from the uptime, so
+     * no extra timer: the existing refresh work samples it every 40 ms. */
+    {
+        uint32_t now = k_uptime_get_32();
+        uint32_t period = 0;
+
+        if (alert_until && (int32_t)(alert_until - now) > 0) {
+            period = ALERT_PERIOD_MS;
+        } else {
+            alert_until = 0;
+            if (blink_on) {
+                period = BLINK_PERIOD_MS;
+            }
+        }
+        if (period) {
+            WRITE_BIT(states, BLINK_IDX, (now % period) < (period / 2));
+            blink_mask = BIT(BLINK_IDX);
+        } else {
+            blink_mask = 0;
+        }
     }
 
     led_states = states;
@@ -277,6 +313,16 @@ void k3yb_status_flame_toggle(void) {
     status_flame = !status_flame;
     LOG_INF("status flame %s", status_flame ? "on" : "off");
     led_settings_dirty();
+}
+
+void k3yb_status_blink_set(bool on) {
+    blink_on = on;
+    LOG_DBG("status blink %s", on ? "on" : "off");
+}
+
+void k3yb_status_blink_alert(uint16_t duration_ms) {
+    /* never 0: 0 means "no alert" */
+    alert_until = (k_uptime_get_32() + duration_ms) | 1;
 }
 
 bool k3yb_backlight_is_on(void) { return bl_on; }

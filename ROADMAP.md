@@ -11,16 +11,57 @@ hardware on this PCB).
 
 ## v2 (next PCB revision + firmware)
 
-### LED mux replacement / expansion (hardware)
+### Per-key backlight via IS31FL3733 on I2C (hardware + firmware)
 
-Replace the CD4052 with a larger mux (or LED driver) with more channels:
+Monochrome per-key backlight driven by an **ISSI IS31FL3733** matrix LED
+driver on the existing I2C bus (P1.01/P1.02, shared with the display at
+a different address) — **zero extra nice!nano pins, no extra mux**:
 
-- solves the CD4052 X/Y coupling that blocked the per-key backlight
-  (shared A/B/Inh make Xk conduct exactly when Yk does);
-- dedicated channel(s) for the **105-key backlight** — the firmware side
-  is already in place (`backlight_apply()` in `src/led_mux.c` is the
-  single hook, state machine / keymap / persistence are final);
-- spare channels for future indicators or lighting zones.
+- 12 SW x 16 CS matrix (192 LEDs); 105 keys fit on SW1-12 x CS1-9;
+- 256-step PWM per LED: per-key levels and per-key flame become possible;
+- software shutdown via register (few uA) — SDB tied high through a
+  resistor (optionally to P1.07 for a hard off), INTB unused;
+- ADDR1/ADDR2 strapped to an address clear of the display;
+- R_ISET sets the peak LED current; aim for ~1 mA average per LED at
+  full level (1/12 matrix duty), capped further by
+  `CONFIG_K3YB_BACKLIGHT_MAX`;
+- package QFN-48: order the board PCBA-assembled (JLCPCB/PCBWay);
+- firmware: small custom driver in this module (the Zephyr in-tree
+  `is31fl3733` driver arrived in Zephyr 3.6, ZMK v0.3 is on 3.5), wired
+  into `backlight_apply()` in `src/led_mux.c` — state machine, keymap
+  and persistence are already final.
+
+**LEDs:** single-colour **white** (preferred) or **blue**, one per key.
+
+- white gives the most perceived light per mA (blue at 465-470 nm looks
+  dimmer to the eye for the same current), so it reaches a usable level
+  at the lowest current; pick a high-efficiency part rated for good
+  brightness at 1-2 mA;
+- package to match the switch LED window: 1206 reverse-mount SMD
+  (shining up through the PCB) or 2x3x4 mm / 3 mm THT in the switch LED
+  holes; prefer SMD from the assembler's basic/extended library;
+- **headroom:** white/blue Vf is ~2.8-3.2 V; the driver needs roughly
+  Vf + 0.5-0.7 V on PVCC. Straight from VBAT the backlight dims below
+  ~3.7 V battery. Either accept it (backlight fades in the lower half of
+  the discharge curve) or feed PVCC from a small 5 V boost converter
+  gated off in shutdown;
+- budget: ~105 mA at full level from the LED side alone vs a few hundred
+  uA for the rest of the keyboard — keep the level cap low and add
+  idle auto-off.
+
+The CD4052 stays for the 4 status LEDs.
+
+### Numpad into the mux matrix (hardware)
+
+The main matrix has 24 unused (row, mux address) positions (row 1:
+0,1; row 4: 1,2; row 5: 10; row 6: 10). Wiring the 17 numpad keys
+electrically into those positions (physical placement unchanged):
+
+- frees the 4 direct-column pins (D10, D14, D15, D16);
+- removes the parked-mux ghosting at the root (no direct columns while
+  the 4067 stays enabled), making the firmware masking unnecessary;
+- firmware change is limited to the matrix transform and dropping
+  `direct-gpios`.
 
 ### Keyboard heater (hardware + firmware)
 
@@ -49,7 +90,9 @@ the cable, not the PCB). Deferred to a later revision:
 - 10k row pull-downs (internal nRF pull-downs work in practice);
 - 4067 E-bar to a dedicated pin (superseded by the firmware
   parked-address masking);
-- I2C pull-up footprints (OLED modules carry their own);
+- I2C pull-ups on the PCB (4.7k) — today the OLED module provides
+  them; **required** once the IS31FL3733 is on the bus, since the
+  no-display build would otherwise have none;
 - test points on 4067 COM, one row, one select, SDA/SCL.
 
 ### Firmware ideas

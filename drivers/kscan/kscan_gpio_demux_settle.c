@@ -115,20 +115,40 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
         /* 2) direct-driven columns, strictly after the demux pass.        */                      \
         /* The mux cannot be disabled (EN hardwired low) and stays parked  */                      \
         /* on the last address: a pressed key on that column keeps feeding */                      \
-        /* its row, which would ghost onto the direct columns.  Rows that  */                      \
-        /* read pressed on the parked address are therefore held at their  */                      \
-        /* previous direct-column state instead of being sampled.          */                      \
+        /* its row, which would ghost onto the direct columns (e.g. N ->   */                      \
+        /* KP_ENTER on row 4).  Each direct sample is bracketed by a       */                      \
+        /* parked-only sample before and after it; if either reads the     */                      \
+        /* row pressed, the direct state is held instead of sampled.  A    */                      \
+        /* key closing (or bouncing) between the demux pass and the direct */                      \
+        /* sample used to slip through and then stay latched.  On top of   */                      \
+        /* that, a direct-column change must be seen on two consecutive    */                      \
+        /* scans before it is reported.                                    */                      \
+        static bool direct_pending[INST_DIRECT_GPIOS(n)][INST_MATRIX_INPUTS(n)];                   \
+        bool parked_before[INST_MATRIX_INPUTS(n)];                                                 \
+        bool parked_after[INST_MATRIX_INPUTS(n)];                                                  \
+        for (int i = 0; i < INST_MATRIX_INPUTS(n); i++) {                                          \
+            parked_before[i] = read_state[INST_DEMUX_OUTPUTS(n) - 1][i];                           \
+        }                                                                                          \
         for (int d = 0; d < INST_DIRECT_GPIOS(n); d++) {                                           \
+            int c = INST_DEMUX_OUTPUTS(n) + d;                                                     \
             gpio_pin_set_dt(&kscan_gpio_direct_specs_##n(dev)[d], 1);                              \
             kscan_gpio_sample_rows_##n(dev, row_sample);                                           \
             gpio_pin_set_dt(&kscan_gpio_direct_specs_##n(dev)[d], 0);                              \
+            kscan_gpio_sample_rows_##n(dev, parked_after);                                         \
             for (int i = 0; i < INST_MATRIX_INPUTS(n); i++) {                                      \
-                if (read_state[INST_DEMUX_OUTPUTS(n) - 1][i]) {                                    \
-                    read_state[INST_DEMUX_OUTPUTS(n) + d][i] =                                     \
-                        data->matrix_state[i][INST_DEMUX_OUTPUTS(n) + d];                          \
+                bool held = data->matrix_state[i][c];                                              \
+                if (parked_before[i] || parked_after[i]) {                                         \
+                    read_state[c][i] = held;                                                       \
+                    direct_pending[d][i] = false;                                                  \
+                } else if (row_sample[i] != held && !direct_pending[d][i]) {                       \
+                    read_state[c][i] = held;                                                       \
+                    direct_pending[d][i] = true;                                                   \
+                    submit_follow_up_read = true;                                                  \
                 } else {                                                                           \
-                    read_state[INST_DEMUX_OUTPUTS(n) + d][i] = row_sample[i];                      \
+                    read_state[c][i] = row_sample[i];                                              \
+                    direct_pending[d][i] = false;                                                  \
                 }                                                                                  \
+                parked_before[i] = parked_after[i];                                                \
             }                                                                                      \
         }                                                                                          \
                                                                                                    \

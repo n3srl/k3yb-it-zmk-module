@@ -177,8 +177,14 @@ documented at the top of the file. See [Offline note recorder](#offline-note-rec
 
 Compatible: `k3yb,behavior-repeat`. Wraps another behavior (here the
 accent mod-morphs) and re-fires it while the key is held — initial
-`delay-ms` (400), then every `rate-ms` (80) — like OS key repeat. Needed
+`delay-ms` (400), then every `rate-ms` (250) — like OS key repeat. Needed
 because the accent keys are macros: the host cannot auto-repeat a macro.
+
+The wrapped binding is released through the ZMK behavior queue, i.e.
+after the macro's last step: the mod-morph keeps Shift masked for the
+whole Alt+numpad sequence (Shift+KP digits would be navigation keys with
+NumLock on). Hence `rate-ms` must exceed the macro run time (~210 ms);
+an overlapping fire is skipped.
 
 ### `src/status_screen.c` — custom status screen (LVGL)
 

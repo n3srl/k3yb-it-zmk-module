@@ -20,4 +20,9 @@ properties:
     default: 400
   rate-ms:
     type: int
-    default: 80
+    default: 250
+    description: |
+      Repeat period.  Must exceed the wrapped macro's run time (the accent
+      macros take ~210 ms with ZMK's default wait/tap times): the wrapped
+      binding is released only after the macro finishes, and a fire that
+      overlaps the previous one is skipped.

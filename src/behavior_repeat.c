@@ -6,6 +6,14 @@
  * pressed, then keeps re-firing it (press+release) while held, like OS
  * key repeat.  Used for the Italian accent macros, which being macros
  * produce no HID key the host could auto-repeat.
+ *
+ * The wrapped binding's RELEASE goes through the ZMK behavior queue, not
+ * straight after the press: a macro only queues its steps, so releasing
+ * the wrapping mod-morph at once cleared its Shift mask before the first
+ * Alt+numpad digit went out - Shift+KP digits are navigation keys with
+ * NumLock on, and the uppercase accents typed nothing.  The queue is FIFO,
+ * so the release (and the mask clear) now lands after the macro's last
+ * step.  rate-ms must therefore exceed the macro length (~210 ms).
  */
 
 #define DT_DRV_COMPAT k3yb_behavior_repeat
@@ -15,6 +23,7 @@
 #include <drivers/behavior.h>
 #include <zephyr/logging/log.h>
 #include <zmk/behavior.h>
+#include <zmk/behavior_queue.h>
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
@@ -39,8 +48,11 @@ static void fire_once(const struct device *dev) {
     struct zmk_behavior_binding_event event = data->event;
 
     event.timestamp = k_uptime_get();
-    zmk_behavior_invoke_binding((struct zmk_behavior_binding *)&cfg->binding, event, true);
-    zmk_behavior_invoke_binding((struct zmk_behavior_binding *)&cfg->binding, event, false);
+    if (zmk_behavior_invoke_binding((struct zmk_behavior_binding *)&cfg->binding, event, true) <
+        0) {
+        return; /* previous fire still running (mod-morph busy): skip this one */
+    }
+    zmk_behavior_queue_add(&event, cfg->binding, false, 0);
 }
 
 static void repeat_work_cb(struct k_work *work) {

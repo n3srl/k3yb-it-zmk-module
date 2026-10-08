@@ -27,7 +27,7 @@ firmware variants; download them from the **Actions** tab.
 | `*_debug` | as above | + USB serial logging (CDC ACM, 115200) |
 | `k3yb_it_SSD1327_128x128_testpattern` | SSD1327 | GDDRAM probe patterns for panel bring-up |
 
-Flashing: double-tap RST→GND on the nice!nano (or hold **AltGr + ESC**
+Flashing: double-tap RST→GND on the nice!nano (or hold **the backslash key beside left Shift + ESC**
 once this firmware is running) to enter the UF2 bootloader, then copy the
 `.uf2` onto the `NICENANO` drive.
 
@@ -112,18 +112,20 @@ extended to scan, **sequentially within a single pass**:
 1. the 16 demux-selected columns (scan columns 0–15), then
 2. the direct-driven numpad columns (`direct-gpios`, scan columns 16+)
 
-on the same shared row pins — the two column sets are never driven at the
-same time, which is what allows rows to be shared safely.
+on the same shared row pins. The mux stays enabled while the direct columns
+are scanned, so its parked address must be masked as described below.
 
-Properties: `settle-time-us` (default 10; we use 30) is the wait between
-column change and row sampling. `active-discharge` (bool, **off** by
+Properties: `settle-time-us` (default 10; we use 100) is the wait before
+each of two row samples. Disagreeing samples are ignored. `debounce-period`
+(default 5; we use 10 ms) requires a stable press or release per key across
+scans. Masked numpad samples reset pending confirmation. `active-discharge` (bool, **off** by
 default) actively drives rows low between columns; it kills residual-charge
 ghosting but briefly shorts a driven-high column into driven-low row pins
 through any held key — beyond nRF52840 pin specs — so leave it off unless
 ghosting is proven on healthy hardware.
 
 Because the 4067 cannot be disabled (E̅ hardwired low), it stays parked on
-address 15 during the numpad scan; a held key on that column (F7/U/J/N)
+address 15 during the numpad scan; a held key on that column (F7/7/U/J/N)
 would ghost onto the numpad columns. The driver masks this by freezing the
 direct-column state of any row that reads pressed on the parked address.
 
@@ -214,14 +216,15 @@ Base layout is **US ASCII** (set the host OS layout to English-US).
 Accented vowels are produced with **Windows Alt+numpad codes**, so they
 need **NumLock ON** and work on Windows hosts.
 
-- Hold **AltGr (right Alt)** + vowel (A E I O U) → **grave**:
+- Hold **the backslash key beside left Shift** + vowel (A E I O U) → **grave**:
   à è ì ò ù — with Shift: À È Ì Ò Ù
-- Hold **FN** + vowel → **acute**: á é í ó ú — with Shift: Á É Í Ó Ú
+- Hold **right Ctrl** + vowel → **acute**: á é í ó ú — with Shift: Á É Í Ó Ú
 - For Italian you mostly need grave (è cioè città) plus **é** (perché) from
   the acute layer.
+- AltGr is unused; left Alt remains a normal modifier.
 - Holding a vowel repeats the accent (firmware-side auto-repeat).
 
-Bootloader shortcut: hold **AltGr + ESC** to enter the UF2 bootloader.
+Bootloader shortcut: hold **the backslash key beside left Shift + ESC** to enter the UF2 bootloader.
 
 ## LED control layer (layer 4)
 

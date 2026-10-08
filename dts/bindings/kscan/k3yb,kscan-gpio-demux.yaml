@@ -23,10 +23,11 @@ properties:
   debounce-period:
     type: int
     default: 5
+    description: Stable milliseconds required for both press and release; zero disables debounce
   settle-time-us:
     type: int
     default: 10
-    description: Microseconds to wait after an address change before reading inputs
+    description: Microseconds to wait before each of two row samples after an address change
   active-discharge:
     type: boolean
     description: |

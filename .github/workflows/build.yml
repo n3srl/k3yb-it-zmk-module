@@ -1,5 +1,10 @@
 on: [push, pull_request, workflow_dispatch]
 
 jobs:
+  scanner-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tests/test_kscan.py
   build:
     uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@v0.3

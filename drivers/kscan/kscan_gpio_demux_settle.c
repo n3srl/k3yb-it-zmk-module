@@ -12,8 +12,9 @@
  * All columns share the same row sense pins.
  *
  * Other changes vs upstream:
- *  - Rows are actively discharged (driven inactive, then released back to
- *    input) after every column change, killing residual-charge ghosting.
+ *  - Optional active row discharge (off on this shield).
+ *  - Two settled samples reject changing rows; both edges are debounced
+ *    per key, including masked direct-column samples.
  *  - Settle time is configurable via the settle-time-us DT property.
  */
 
@@ -25,6 +26,8 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
+#include "kscan_debounce.h"
+
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 // Helper macro
@@ -32,9 +35,6 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 // Define row and col cfg
 #define _KSCAN_GPIO_CFG_INIT(n, prop, idx) GPIO_DT_SPEC_GET_BY_IDX(n, prop, idx),
-
-// Check debounce config
-#define CHECK_DEBOUNCE_CFG(n, a, b) COND_CODE_0(DT_INST_PROP(n, debounce_period), a, b)
 
 // Define the row and column lengths
 #define INST_MATRIX_INPUTS(n) DT_INST_PROP_LEN(n, input_gpios)
@@ -55,8 +55,9 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
     struct kscan_gpio_data_##n {                                                                   \
         kscan_callback_t callback;                                                                 \
         struct k_timer poll_timer;                                                                 \
-        struct CHECK_DEBOUNCE_CFG(n, (k_work), (k_work_delayable)) work;                           \
+        struct k_work_delayable work;                                                             \
         bool matrix_state[INST_MATRIX_INPUTS(n)][INST_MATRIX_OUTPUTS(n)];                          \
+        struct k3yb_debounce debounce[INST_MATRIX_INPUTS(n)][INST_MATRIX_OUTPUTS(n)];             \
         const struct device *dev;                                                                  \
     };                                                                                             \
     static const struct gpio_dt_spec *kscan_gpio_input_specs_##n(const struct device *dev) {       \
@@ -75,11 +76,12 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
     static void kscan_gpio_timer_handler(struct k_timer *timer) {                                  \
         struct kscan_gpio_data_##n *data =                                                         \
             CONTAINER_OF(timer, struct kscan_gpio_data_##n, poll_timer);                           \
-        k_work_submit(&data->work.work);                                                           \
+        k_work_schedule(&data->work, K_NO_WAIT);                                                  \
     }                                                                                              \
                                                                                                    \
     /* Optionally discharge rows, settle, then read them */                                        \
-    static void kscan_gpio_sample_rows_##n(const struct device *dev, bool *state_col) {            \
+    static void kscan_gpio_sample_rows_##n(const struct device *dev,                              \
+                                          bool *state_col, bool *valid_col) {                     \
         if (DT_INST_PROP(n, active_discharge)) {                                                   \
             for (int i = 0; i < INST_MATRIX_INPUTS(n); i++) {                                      \
                 gpio_pin_configure_dt(&kscan_gpio_input_specs_##n(dev)[i], GPIO_OUTPUT_INACTIVE);  \
@@ -90,7 +92,16 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
         }                                                                                          \
         k_busy_wait(SETTLE_TIME_US(n));                                                            \
         for (int i = 0; i < INST_MATRIX_INPUTS(n); i++) {                                          \
-            state_col[i] = gpio_pin_get_dt(&kscan_gpio_input_specs_##n(dev)[i]) > 0;               \
+            int sample = gpio_pin_get_dt(&kscan_gpio_input_specs_##n(dev)[i]);                    \
+            valid_col[i] = sample >= 0;                                                           \
+            state_col[i] = sample > 0;                                                            \
+        }                                                                                          \
+        /* Reject a row still changing after the first settling interval. */                      \
+        k_busy_wait(SETTLE_TIME_US(n));                                                            \
+        for (int i = 0; i < INST_MATRIX_INPUTS(n); i++) {                                          \
+            int sample = gpio_pin_get_dt(&kscan_gpio_input_specs_##n(dev)[i]);                    \
+            valid_col[i] = valid_col[i] && sample >= 0 && state_col[i] == (sample > 0);           \
+            state_col[i] = sample > 0;                                                            \
         }                                                                                          \
     }                                                                                              \
                                                                                                    \
@@ -98,7 +109,9 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
         bool submit_follow_up_read = false;                                                        \
         struct kscan_gpio_data_##n *data = dev->data;                                              \
         static bool read_state[INST_MATRIX_OUTPUTS(n)][INST_MATRIX_INPUTS(n)];                     \
+        static bool valid_state[INST_MATRIX_OUTPUTS(n)][INST_MATRIX_INPUTS(n)];                   \
         bool row_sample[INST_MATRIX_INPUTS(n)];                                                    \
+        bool row_valid[INST_MATRIX_INPUTS(n)];                                                    \
                                                                                                    \
         /* 1) demux-selected columns, one address at a time */                                     \
         for (int o = 0; o < INST_DEMUX_OUTPUTS(n); o++) {                                          \
@@ -106,8 +119,9 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
                 uint8_t state = (o & (0b1 << bit)) >> bit;                                         \
                 gpio_pin_set_dt(&kscan_gpio_output_specs_##n(dev)[bit], state);                    \
             }                                                                                      \
-            kscan_gpio_sample_rows_##n(dev, row_sample);                                           \
+            kscan_gpio_sample_rows_##n(dev, row_sample, row_valid);                               \
             for (int i = 0; i < INST_MATRIX_INPUTS(n); i++) {                                      \
+                valid_state[o][i] = row_valid[i];                                                 \
                 read_state[o][i] = row_sample[i];                                                  \
             }                                                                                      \
         }                                                                                          \
@@ -121,40 +135,38 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
         /* row pressed, the direct state is held instead of sampled.  A    */                      \
         /* key closing (or bouncing) between the demux pass and the direct */                      \
         /* sample used to slip through and then stay latched.  On top of   */                      \
-        /* that, a direct-column change must be seen on two consecutive    */                      \
-        /* scans before it is reported.                                    */                      \
-        static bool direct_pending[INST_DIRECT_GPIOS(n)][INST_MATRIX_INPUTS(n)];                   \
+        /* that, both edges use the same timed debounce as the main keys. */                      \
         bool parked_before[INST_MATRIX_INPUTS(n)];                                                 \
         bool parked_after[INST_MATRIX_INPUTS(n)];                                                  \
+        bool parked_before_valid[INST_MATRIX_INPUTS(n)];                                          \
+        bool parked_after_valid[INST_MATRIX_INPUTS(n)];                                           \
         for (int i = 0; i < INST_MATRIX_INPUTS(n); i++) {                                          \
+            parked_before_valid[i] = valid_state[INST_DEMUX_OUTPUTS(n) - 1][i];                   \
             parked_before[i] = read_state[INST_DEMUX_OUTPUTS(n) - 1][i];                           \
         }                                                                                          \
         for (int d = 0; d < INST_DIRECT_GPIOS(n); d++) {                                           \
             int c = INST_DEMUX_OUTPUTS(n) + d;                                                     \
             gpio_pin_set_dt(&kscan_gpio_direct_specs_##n(dev)[d], 1);                              \
-            kscan_gpio_sample_rows_##n(dev, row_sample);                                           \
+            kscan_gpio_sample_rows_##n(dev, row_sample, row_valid);                               \
             gpio_pin_set_dt(&kscan_gpio_direct_specs_##n(dev)[d], 0);                              \
-            kscan_gpio_sample_rows_##n(dev, parked_after);                                         \
+            kscan_gpio_sample_rows_##n(dev, parked_after, parked_after_valid);                    \
             for (int i = 0; i < INST_MATRIX_INPUTS(n); i++) {                                      \
-                bool held = data->matrix_state[i][c];                                              \
-                if (parked_before[i] || parked_after[i]) {                                         \
-                    read_state[c][i] = held;                                                       \
-                    direct_pending[d][i] = false;                                                  \
-                } else if (row_sample[i] != held && !direct_pending[d][i]) {                       \
-                    read_state[c][i] = held;                                                       \
-                    direct_pending[d][i] = true;                                                   \
-                    submit_follow_up_read = true;                                                  \
-                } else {                                                                           \
-                    read_state[c][i] = row_sample[i];                                              \
-                    direct_pending[d][i] = false;                                                  \
-                }                                                                                  \
+                valid_state[c][i] = row_valid[i] && parked_before_valid[i] &&                     \
+                                    parked_after_valid[i] &&                                      \
+                                    !parked_before[i] && !parked_after[i];                        \
+                read_state[c][i] = row_sample[i];                                                 \
+                parked_before_valid[i] = parked_after_valid[i];                                   \
                 parked_before[i] = parked_after[i];                                                \
             }                                                                                      \
         }                                                                                          \
                                                                                                    \
+        uint32_t now = k_uptime_get_32();                                                         \
         for (int r = 0; r < INST_MATRIX_INPUTS(n); r++) {                                          \
             for (int c = 0; c < INST_MATRIX_OUTPUTS(n); c++) {                                     \
-                bool pressed = read_state[c][r];                                                   \
+                bool pressed = k3yb_debounce_update(&data->debounce[r][c],                        \
+                    data->matrix_state[r][c], read_state[c][r], valid_state[c][r], now,           \
+                    DT_INST_PROP(n, debounce_period));                                            \
+                submit_follow_up_read |= data->debounce[r][c].candidate != pressed;               \
                 submit_follow_up_read = (submit_follow_up_read || pressed);                        \
                 if (pressed != data->matrix_state[r][c]) {                                         \
                     LOG_DBG("Sending event at %d,%d state %s", r, c, (pressed ? "on" : "off"));    \
@@ -164,8 +176,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
             }                                                                                      \
         }                                                                                          \
         if (submit_follow_up_read) {                                                               \
-            CHECK_DEBOUNCE_CFG(n, ({ k_work_submit(&data->work); }),                               \
-                               ({ k_work_reschedule(&data->work, K_MSEC(5)); }))                   \
+            k_work_schedule(&data->work, K_MSEC(5));                                              \
         }                                                                                          \
         return 0;                                                                                  \
     }                                                                                              \
@@ -243,8 +254,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
                                                                                                    \
         k_timer_init(&data->poll_timer, kscan_gpio_timer_handler, NULL);                           \
                                                                                                    \
-        (CHECK_DEBOUNCE_CFG(n, (k_work_init), (k_work_init_delayable)))(                           \
-            &data->work, kscan_gpio_work_handler_##n);                                             \
+        k_work_init_delayable(&data->work, kscan_gpio_work_handler_##n);                          \
         return 0;                                                                                  \
     }                                                                                              \
                                                                                                    \

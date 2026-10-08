@@ -8,10 +8,10 @@
  *
  *   4  led_control     - backlight / flame / BT / recorder controls (Scroll Lock + Pause combo)
  *
- * Italian layer activation:
- *   Hold NON_US_HASH key (row 6, main section) â†’ layer 2 (grave)
- *   Hold K_APP key       (row 7, main section) â†’ layer 3 (acute)
- *   Tap those same keys  â†’ normal character (# and Context Menu)
+ * Italian layer activation (pure momentary bindings):
+ *   Hold the backslash key next to left Shift -> layer 2 (grave).
+ *   Hold right Ctrl -> layer 3 (acute).
+ *   AltGr is unused; left Alt remains a normal modifier.
  *
  * Italian accent macros â€” Windows Alt+numpad Unicode input:
  *   Requirements: NumLock ON, OS keyboard layout = US (not IT).
@@ -292,8 +292,8 @@
          *  7 â”‚   â”‚   â”‚   â”‚   â”‚   â”‚   â”‚   â”‚   â”‚RALâ”‚   â”‚IT'â”‚RCTâ”‚   â”‚ â† â”‚ â†“ â”‚   â”‚
          *    â””â”€â”€â”€â”´â”€â”€â”€â”´â”€â”€â”€â”´â”€â”€â”€â”´â”€â”€â”€â”´â”€â”€â”€â”´â”€â”€â”€â”´â”€â”€â”€â”´â”€â”€â”€â”´â”€â”€â”€â”´â”€â”€â”€â”´â”€â”€â”€â”´â”€â”€â”€â”´â”€â”€â”€â”´â”€â”€â”€â”´â”€â”€â”€â”˜
          *
-         *  IT` = tap: # (NON_US_HASH)  / hold: Italian grave layer (2)
-         *  IT' = tap: Context Menu     / hold: Italian acute layer (3)
+         *  Grave layer (2): hold the backslash key beside left Shift
+         *  Acute layer (3): hold right Ctrl
          * ---------------------------------------------------------- */
         default_layer {
             bindings = <
@@ -310,15 +310,14 @@
             &kp CAPSLOCK     &kp A         &kp S        &kp D     &kp F  &kp G  &kp H  &kp J
             &kp K            &kp L         &kp SEMICOLON &kp SINGLE_QUOTE &kp ENTER &kp DELETE &kp END &kp PAGE_DOWN
             /* row 4 */
-            &kp LEFT_SHIFT   &kp BACKSLASH &kp Z        &kp X     &kp C  &kp V  &kp B  &kp N
+            &kp LEFT_SHIFT   &mo 2         &kp Z        &kp X     &kp C  &kp V  &kp B  &kp N
             &kp M            &kp COMMA     &kp DOT      &kp SLASH &kp RIGHT_SHIFT &kp UP_ARROW
             /* row 5 */
             &kp LEFT_CONTROL &kp LEFT_WIN  &kp LEFT_ALT &kp SPACE &kp RIGHT_ARROW &kp NON_US_HASH
             /* row 6 */
-            /* AltGr = momentary GRAVE layer, Right Ctrl = momentary ACUTE
-             * layer (pure &mo: no tap-hold, the layer can never be "lost"
-             * while typing accented vowels) */
-            &mo 2            &kp RIGHT_GUI &kp K_APP    &mo 3             &kp LEFT_ARROW &kp DOWN_ARROW
+            /* Grave is on the extra backslash key; AltGr is unused.
+             * Right Ctrl remains the pure momentary ACUTE layer key. */
+            &none            &kp RIGHT_GUI &kp K_APP    &mo 3             &kp LEFT_ARROW &kp DOWN_ARROW
             /* numpad (cols 16-19) — active directly in the default layer */
             &kp KP_NUMLOCK  &kp KP_DIVIDE   &kp KP_ASTERISK &kp KP_SUBTRACT
             &kp KP_N7       &kp KP_N8       &kp KP_N9       &kp KP_PLUS
@@ -375,7 +374,7 @@
         };
 
         /* ----------------------------------------------------------
-         *  Layer 2 â€” ital_grave  (hold IT` = NON_US_HASH key)
+         *  Layer 2 â€” ital_grave  (hold the backslash key beside left Shift)
          *
          *  Vowels â†’ grave-accented character
          *  Shift + vowel â†’ uppercase grave-accented character
@@ -388,7 +387,7 @@
          * ---------------------------------------------------------- */
         ital_grave {
             bindings = <
-            /* row 0: hold IT` + ESC = bootloader (flash mode), rest transparent */
+            /* row 0: hold the backslash key + ESC = bootloader (flash mode), rest transparent */
             &bootloader &trans &trans &trans &trans &trans &trans &trans
             &trans &trans &trans &trans &trans &trans &trans &trans
             /* row 1 â€” number row, all transparent */
@@ -413,7 +412,7 @@
         };
 
         /* ----------------------------------------------------------
-         *  Layer 3 â€” ital_acute  (hold IT' = K_APP key)
+         *  Layer 3 â€” ital_acute  (hold right Ctrl)
          *
          *  Characters: aâ†’Ã¡  eâ†’Ã©  iâ†’Ã­  oâ†’Ã³  uâ†’Ãº
          *              Aâ†’Ã  Eâ†’Ã‰  Iâ†’Ã  Oâ†’Ã“  Uâ†’Ãš

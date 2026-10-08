@@ -15,7 +15,7 @@
      *    S1 = NANO_MUX 2 = D20 = pro_micro 20
      *    S2 = NANO_MUX 3 = D19 = pro_micro 19
      *    S3 = NANO_MUX 4 = D18 = pro_micro 18
-     *  COM is tied to GND; the selected Ix pin is driven LOW.
+     *  COM is tied to 3.3V; the selected Ix pin is driven HIGH.
      *
      *  Physical column vs MUX address (from schematic):
      *    addr 0 (I0) = Col 15   addr  8 (I8)  = Col 0
@@ -28,7 +28,9 @@
         /* custom fork of zmk,kscan-gpio-demux with active row discharge
          * to kill ghost keys from residual charge (see drivers/kscan/) */
         compatible = "k3yb,kscan-gpio-demux";
-        settle-time-us = <30>;
+        /* Allow residual row charge to drain through the input pull-downs. */
+        settle-time-us = <100>;
+        debounce-period = <10>;
         /* active-discharge intentionally OFF: it stresses pins when a key
          * is held (col driven high shorted into row driven low).  Enable
          * only if ghosting appears on healthy hardware. */
